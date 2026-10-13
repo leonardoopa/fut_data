@@ -19,7 +19,7 @@ docker compose up -d --build
 - API: http://localhost:8000 (o prefixo `/api/v1` fica nas rotas)
 - Documentação interativa (Swagger): http://localhost:8000/docs
 
-As migrations rodam automaticamente na subida do backend.
+As migrations do Django rodam automaticamente na subida do backend.
 
 ## Executar o backend localmente
 
@@ -32,20 +32,37 @@ cd backend
 cp .env.example .env
 python3.12 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/alembic upgrade head
-.venv/bin/uvicorn app.main:app --port 8000 --no-access-log
+.venv/bin/python manage.py migrate
+.venv/bin/uvicorn app.asgi:app --port 8000 --no-access-log
 ```
 
-## Recriar o banco do zero (na pasta backend)
+## Recriar o banco do zero
+
+Com Docker (na raiz do repositório):
 
 ```bash
-.venv/bin/alembic downgrade base
-.venv/bin/alembic upgrade head
+docker compose exec backend python manage.py migrate league zero
+docker compose exec backend python manage.py migrate
 ```
 
-Com Docker, na raiz: `docker compose down -v && docker compose up -d --build`.
+Localmente (na pasta backend):
 
-## Testes, lint e formatação (na pasta backend)
+```bash
+.venv/bin/python manage.py migrate league zero
+.venv/bin/python manage.py migrate
+```
+
+## Testes, lint e formatação
+
+Com Docker (na raiz do repositório):
+
+```bash
+docker compose exec backend pytest
+docker compose exec backend ruff check .
+docker compose exec backend ruff format --check .
+```
+
+Localmente (na pasta backend):
 
 ```bash
 .venv/bin/pytest

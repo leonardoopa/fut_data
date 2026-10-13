@@ -7,17 +7,18 @@ requires-python = ">=3.12"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = ["alembic/versions"]
+extend-exclude = ["app/migrations"]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RET", "PTH", "ERA", "PL", "RUF"]
-ignore = ["PLR0913", "PLR2004"]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RET", "PTH", "ERA", "PL", "RUF", "DJ"]
+ignore = ["PLR0913", "PLR2004", "DJ001", "DJ008"]
 
 [tool.ruff.lint.isort]
-known-third-party = ["alembic"]
+known-first-party = ["app", "config"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["PLR2004"]
+"app/asgi.py" = ["E402"]
+"config/settings_test.py" = ["F403"]
 
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]
@@ -26,5 +27,6 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "f
 quote-style = "double"
 
 [tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings_test"
 testpaths = ["tests"]
 addopts = "-q"
