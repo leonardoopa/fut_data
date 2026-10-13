@@ -9,10 +9,16 @@ from app.models.player import Player
 
 class MarketTransaction(models.Model):
     club = models.ForeignKey(
-        Club, on_delete=models.PROTECT, related_name="transactions", db_column="clube_id"
+        Club,
+        on_delete=models.PROTECT,
+        related_name="transactions",
+        db_column="clube_id",
     )
     player = models.ForeignKey(
-        Player, on_delete=models.PROTECT, related_name="transactions", db_column="jogador_id"
+        Player,
+        on_delete=models.PROTECT,
+        related_name="transactions",
+        db_column="jogador_id",
     )
     player_name = models.CharField(max_length=100, db_column="nome_jogador")
     type = enum_field(TransactionType, 6, db_column="tipo")
@@ -26,6 +32,8 @@ class MarketTransaction(models.Model):
     class Meta:
         db_table = "transacoes"
         indexes = (
-            models.Index(fields=("club", "created_at"), name="ix_transacoes_club_created_at"),
+            models.Index(
+                fields=("club", "created_at"), name="ix_transacoes_club_created_at"
+            ),
         )
         constraints = (values_check("transacoes", "type", TransactionType),)

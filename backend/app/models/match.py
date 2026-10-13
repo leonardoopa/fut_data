@@ -11,10 +11,16 @@ PLAYABLE_CONDITIONS = (Condition.APTO, Condition.MAL_CONDICIONADO)
 
 class Match(models.Model):
     home_club = models.ForeignKey(
-        Club, on_delete=models.PROTECT, related_name="home_matches", db_column="mandante_id"
+        Club,
+        on_delete=models.PROTECT,
+        related_name="home_matches",
+        db_column="mandante_id",
     )
     away_club = models.ForeignKey(
-        Club, on_delete=models.PROTECT, related_name="away_matches", db_column="visitante_id"
+        Club,
+        on_delete=models.PROTECT,
+        related_name="away_matches",
+        db_column="visitante_id",
     )
     home_goals = models.IntegerField(db_column="gols_mandante")
     away_goals = models.IntegerField(db_column="gols_visitante")

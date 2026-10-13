@@ -7,7 +7,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.domain.exceptions import BusinessRuleError, DomainError, InvalidInputError, NotFoundError
+from app.domain.exceptions import (
+    BusinessRuleError,
+    DomainError,
+    InvalidInputError,
+    NotFoundError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +38,9 @@ def error_response(status: int, message: str) -> JSONResponse:
 
 def describe_validation_error(error: RequestValidationError) -> str:
     first = error.errors()[0]
-    field = ".".join(str(part) for part in first["loc"] if part not in {"body", "query", "path"})
+    field = ".".join(
+        str(part) for part in first["loc"] if part not in {"body", "query", "path"}
+    )
     if first["type"] == "json_invalid":
         return "O corpo da requisição não é um JSON válido."
     if first["type"] == "missing":
@@ -50,7 +57,9 @@ def domain_error_handler(status: HTTPStatus) -> ErrorHandler:
     return handle
 
 
-async def handle_validation_error(_: Request, error: RequestValidationError) -> JSONResponse:
+async def handle_validation_error(
+    _: Request, error: RequestValidationError
+) -> JSONResponse:
     return error_response(HTTPStatus.BAD_REQUEST, describe_validation_error(error))
 
 

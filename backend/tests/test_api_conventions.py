@@ -14,7 +14,9 @@ def test_health_returns_ok(client: TestClient) -> None:
 
 
 @pytest.mark.parametrize("path", ["/api/v1/inexistente", "/api/v1/health/"])
-def test_unknown_path_returns_json_404_without_redirect(client: TestClient, path: str) -> None:
+def test_unknown_path_returns_json_404_without_redirect(
+    client: TestClient, path: str
+) -> None:
     response = client.get(path, follow_redirects=False)
 
     assert response.status_code == 404
@@ -32,8 +34,12 @@ def test_unsupported_method_returns_json_message(client: TestClient) -> None:
 def test_cors_allows_only_configured_origin(client: TestClient) -> None:
     preflight = {"Access-Control-Request-Method": "GET"}
 
-    allowed = client.options("/api/v1/health", headers={"Origin": FRONTEND_ORIGIN, **preflight})
-    denied = client.options("/api/v1/health", headers={"Origin": "http://evil.test", **preflight})
+    allowed = client.options(
+        "/api/v1/health", headers={"Origin": FRONTEND_ORIGIN, **preflight}
+    )
+    denied = client.options(
+        "/api/v1/health", headers={"Origin": "http://evil.test", **preflight}
+    )
 
     assert allowed.headers["access-control-allow-origin"] == FRONTEND_ORIGIN
     assert "access-control-allow-origin" not in denied.headers

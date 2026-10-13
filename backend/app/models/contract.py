@@ -9,7 +9,10 @@ from app.models.player import Player
 
 class Contract(models.Model):
     player = models.ForeignKey(
-        Player, on_delete=models.PROTECT, related_name="contracts", db_column="jogador_id"
+        Player,
+        on_delete=models.PROTECT,
+        related_name="contracts",
+        db_column="jogador_id",
     )
     club = models.ForeignKey(
         Club, on_delete=models.PROTECT, related_name="contracts", db_column="clube_id"

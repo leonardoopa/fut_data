@@ -14,7 +14,9 @@ def test_connections_are_recycled_in_the_thread_that_runs_the_endpoint(
     recycling_threads: list[int] = []
     endpoint_threads: list[int] = []
     monkeypatch.setattr(
-        database, "close_old_connections", lambda: recycling_threads.append(threading.get_ident())
+        database,
+        "close_old_connections",
+        lambda: recycling_threads.append(threading.get_ident()),
     )
     router = DatabaseRouter()
 

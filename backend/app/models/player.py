@@ -16,7 +16,11 @@ class Player(models.Model):
     base_value = money_field(6, db_column="valor_base")
     condition = enum_field(Condition, 20, db_column="condicao")
     club = models.ForeignKey(
-        Club, null=True, on_delete=models.PROTECT, related_name="players", db_column="clube_id"
+        Club,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="players",
+        db_column="clube_id",
     )
     pace = models.IntegerField(db_column="velocidade")
     shooting = models.IntegerField(db_column="finalizacao")
@@ -37,7 +41,8 @@ class Player(models.Model):
             range_check("jogadores", "potential", 1, 99),
             *(range_check("jogadores", field, 1, 99) for field in ATTRIBUTE_FIELDS),
             models.CheckConstraint(
-                condition=models.Q(base_value__gte=1), name="ck_jogadores_base_value_minimum"
+                condition=models.Q(base_value__gte=1),
+                name="ck_jogadores_base_value_minimum",
             ),
             values_check("jogadores", "position", Position),
             values_check("jogadores", "condition", Condition),

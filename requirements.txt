@@ -1,24 +1,13 @@
-# API HTTP
 fastapi==0.143.0
 uvicorn==0.54.0
-
-# ORM, migrations e conexão com o MySQL
 Django==6.1.2
 PyMySQL==1.2.3
 cryptography==50.0.2
-
-# Configuração por variáveis de ambiente
 pydantic-settings==2.15.0
-
-# Testes automatizados
 pytest==9.1.1
 pytest-django==4.14.0
 httpx2==2.13.1
-
-# Lint e formatação
 ruff==0.17.0
-
-# Dependências indiretas, travadas para instalações reproduzíveis
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
