@@ -19,6 +19,7 @@ known-first-party = ["app", "config"]
 [tool.ruff.lint.per-file-ignores]
 "app/asgi.py" = ["E402"]
 "config/settings_test.py" = ["F403"]
+"tests/**" = ["PLR0917"]
 
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]

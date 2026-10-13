@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Awaitable, Callable
 from http import HTTPStatus
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -29,23 +30,48 @@ HTTP_ERROR_MESSAGES: dict[int, str] = {
 
 UNEXPECTED_ERROR_MESSAGE = "Erro interno inesperado. A operação foi desfeita."
 
+REQUEST_LOCATIONS = frozenset({"body", "query", "path"})
+INVALID_JSON_MESSAGE = "O corpo da requisição não é um JSON válido."
+MISSING_BODY_MESSAGE = "O corpo da requisição é obrigatório."
+BODY_NOT_OBJECT_MESSAGE = "O corpo da requisição deve ser um objeto JSON."
+FIELD_REASONS: dict[str, str] = {
+    "missing": "é obrigatório.",
+    "enum": "valor fora da lista aceita.",
+    "greater_than_equal": "deve ser maior ou igual a {ge}.",
+    "less_than_equal": "deve ser menor ou igual a {le}.",
+    "too_short": "deve ter pelo menos {min_length} itens.",
+    "too_long": "deve ter no máximo {max_length} itens.",
+}
+DEFAULT_FIELD_REASON = "valor inválido."
+
 ErrorHandler = Callable[[Request, DomainError], Awaitable[JSONResponse]]
+ValidationDetail = dict[str, Any]
 
 
 def error_response(status: int, message: str) -> JSONResponse:
     return JSONResponse(status_code=status, content={"message": message})
 
 
+def describe_field_reason(detail: ValidationDetail) -> str:
+    context = detail.get("ctx", {})
+    if detail["type"] == "value_error":
+        return str(context["error"])
+    return FIELD_REASONS.get(detail["type"], DEFAULT_FIELD_REASON).format(**context)
+
+
 def describe_validation_error(error: RequestValidationError) -> str:
-    first = error.errors()[0]
-    field = ".".join(str(part) for part in first["loc"] if part not in {"body", "query", "path"})
-    if first["type"] == "json_invalid":
-        return "O corpo da requisição não é um JSON válido."
-    if first["type"] == "missing":
-        return f"Campo obrigatório ausente: {field or 'corpo da requisição'}."
-    if not field:
-        return "O corpo da requisição deve ser um objeto JSON."
-    return f"Valor inválido para o campo {field}."
+    """Traduz o primeiro erro de validação do Pydantic numa mensagem para o cliente."""
+    detail = error.errors()[0]
+    if detail["type"] == "json_invalid":
+        return INVALID_JSON_MESSAGE
+    field = ".".join(str(part) for part in detail["loc"] if part not in REQUEST_LOCATIONS)
+    if field:
+        return f"Campo {field}: {describe_field_reason(detail)}"
+    if detail["type"] == "value_error":
+        return describe_field_reason(detail)
+    if detail["type"] == "missing":
+        return MISSING_BODY_MESSAGE
+    return BODY_NOT_OBJECT_MESSAGE
 
 
 def domain_error_handler(status: HTTPStatus) -> ErrorHandler:

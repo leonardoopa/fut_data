@@ -1,6 +1,7 @@
 from django.db import models
 
 from app.domain.enums import TransactionType
+from app.domain.player import NAME_MAX_LENGTH
 from app.models.club import Club
 from app.models.constraints import values_check
 from app.models.fields import enum_field, money_field
@@ -20,7 +21,7 @@ class MarketTransaction(models.Model):
         related_name="transactions",
         db_column="jogador_id",
     )
-    player_name = models.CharField(max_length=100, db_column="nome_jogador")
+    player_name = models.CharField(max_length=NAME_MAX_LENGTH, db_column="nome_jogador")
     type = enum_field(TransactionType, 6, db_column="tipo")
     value = money_field(6, db_column="valor")
     fee = money_field(6, db_column="taxa")

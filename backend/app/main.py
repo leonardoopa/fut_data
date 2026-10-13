@@ -13,6 +13,7 @@ def create_app() -> FastAPI:
         description="Mercado de jogadores, clubes e liga do estudo de caso SENAI/PE.",
         version="1.0.0",
         redirect_slashes=False,
+        strict_content_type=False,
     )
     app.add_middleware(
         CORSMiddleware,

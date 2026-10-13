@@ -1,6 +1,7 @@
 from django.db import models
 
 from app.domain.enums import Condition, Position
+from app.domain.player import NAME_MAX_LENGTH
 from app.models.club import Club
 from app.models.constraints import range_check, values_check
 from app.models.fields import enum_field, money_field
@@ -9,7 +10,7 @@ ATTRIBUTE_FIELDS = ("pace", "shooting", "passing", "dribbling", "defending", "ph
 
 
 class Player(models.Model):
-    name = models.CharField(max_length=100, db_column="nome")
+    name = models.CharField(max_length=NAME_MAX_LENGTH, db_column="nome")
     position = enum_field(Position, 3, db_column="posicao")
     agility = models.IntegerField(db_column="agilidade")
     age = models.IntegerField(db_column="idade")

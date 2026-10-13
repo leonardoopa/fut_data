@@ -1,6 +1,7 @@
 from django.db import models
 
 from app.domain.enums import Condition, DuelAttribute, Formation, Position
+from app.domain.player import NAME_MAX_LENGTH
 from app.models.club import Club
 from app.models.constraints import range_check, values_check
 from app.models.fields import enum_field
@@ -56,8 +57,8 @@ class MatchDuel(models.Model):
     defender = models.ForeignKey(
         Player, on_delete=models.PROTECT, related_name="+", db_column="defensor_id"
     )
-    attacker_name = models.CharField(max_length=100, db_column="nome_atacante")
-    defender_name = models.CharField(max_length=100, db_column="nome_defensor")
+    attacker_name = models.CharField(max_length=NAME_MAX_LENGTH, db_column="nome_atacante")
+    defender_name = models.CharField(max_length=NAME_MAX_LENGTH, db_column="nome_defensor")
     attacker_position = enum_field(Position, 3, db_column="posicao_atacante")
     defender_position = enum_field(Position, 3, db_column="posicao_defensor")
     attacker_condition = enum_field(Condition, 20, db_column="condicao_atacante")
