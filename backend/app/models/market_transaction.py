@@ -1,25 +1,31 @@
-from datetime import datetime
-from decimal import Decimal
-
-from sqlalchemy import ForeignKey, Index, String
-from sqlalchemy.orm import Mapped, mapped_column
+from django.db import models
 
 from app.domain.enums import TransactionType
-from app.models.base import Base, UtcDateTime, enum_column, money
+from app.models.club import Club
+from app.models.constraints import values_check
+from app.models.fields import enum_field, money_field
+from app.models.player import Player
 
 
-class MarketTransaction(Base):
-    __tablename__ = "transacoes"
-    __table_args__ = (Index("ix_transacoes_clube_id_criado_em", "clube_id", "criado_em"),)
+class MarketTransaction(models.Model):
+    club = models.ForeignKey(
+        Club, on_delete=models.PROTECT, related_name="transactions", db_column="clube_id"
+    )
+    player = models.ForeignKey(
+        Player, on_delete=models.PROTECT, related_name="transactions", db_column="jogador_id"
+    )
+    player_name = models.CharField(max_length=100, db_column="nome_jogador")
+    type = enum_field(TransactionType, 6, db_column="tipo")
+    value = money_field(6, db_column="valor")
+    fee = money_field(6, db_column="taxa")
+    penalty = money_field(6, db_column="multa")
+    profit = money_field(7, null=True, db_column="lucro")
+    cash_change = money_field(8, db_column="variacao_caixa")
+    created_at = models.DateTimeField(db_column="criado_em")
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    club_id: Mapped[int] = mapped_column("clube_id", ForeignKey("clubes.id"))
-    player_id: Mapped[int] = mapped_column("jogador_id", ForeignKey("jogadores.id"), index=True)
-    player_name: Mapped[str] = mapped_column("nome_jogador", String(100))
-    type: Mapped[TransactionType] = mapped_column("tipo", enum_column(TransactionType, 6, "tipo"))
-    value: Mapped[Decimal] = mapped_column("valor", money(6))
-    fee: Mapped[Decimal] = mapped_column("taxa", money(6))
-    penalty: Mapped[Decimal] = mapped_column("multa", money(6))
-    profit: Mapped[Decimal | None] = mapped_column("lucro", money(7))
-    cash_change: Mapped[Decimal] = mapped_column("variacao_caixa", money(8))
-    created_at: Mapped[datetime] = mapped_column("criado_em", UtcDateTime)
+    class Meta:
+        db_table = "transacoes"
+        indexes = (
+            models.Index(fields=("club", "created_at"), name="ix_transacoes_club_created_at"),
+        )
+        constraints = (values_check("transacoes", "type", TransactionType),)

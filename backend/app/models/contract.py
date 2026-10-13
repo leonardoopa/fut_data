@@ -1,23 +1,25 @@
-from datetime import datetime
-from decimal import Decimal
-
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from django.db import models
 
 from app.domain.enums import ContractStatus
-from app.models.base import Base, UtcDateTime, enum_column, money
+from app.models.club import Club
+from app.models.constraints import values_check
+from app.models.fields import enum_field, money_field
+from app.models.player import Player
 
 
-class Contract(Base):
-    __tablename__ = "contratos"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    player_id: Mapped[int] = mapped_column("jogador_id", ForeignKey("jogadores.id"), index=True)
-    club_id: Mapped[int] = mapped_column("clube_id", ForeignKey("clubes.id"), index=True)
-    purchase_value: Mapped[Decimal] = mapped_column("valor_compra", money(6))
-    loyalty_until: Mapped[datetime] = mapped_column("fidelidade_ate", UtcDateTime)
-    status: Mapped[ContractStatus] = mapped_column(
-        "situacao", enum_column(ContractStatus, 12, "situacao"), default=ContractStatus.ATIVO
+class Contract(models.Model):
+    player = models.ForeignKey(
+        Player, on_delete=models.PROTECT, related_name="contracts", db_column="jogador_id"
     )
-    started_at: Mapped[datetime] = mapped_column("iniciado_em", UtcDateTime)
-    ended_at: Mapped[datetime | None] = mapped_column("encerrado_em", UtcDateTime)
+    club = models.ForeignKey(
+        Club, on_delete=models.PROTECT, related_name="contracts", db_column="clube_id"
+    )
+    purchase_value = money_field(6, db_column="valor_compra")
+    loyalty_until = models.DateTimeField(db_column="fidelidade_ate")
+    status = enum_field(ContractStatus, 12, db_column="situacao")
+    started_at = models.DateTimeField(db_column="iniciado_em")
+    ended_at = models.DateTimeField(null=True, db_column="encerrado_em")
+
+    class Meta:
+        db_table = "contratos"
+        constraints = (values_check("contratos", "status", ContractStatus),)

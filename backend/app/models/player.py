@@ -1,56 +1,44 @@
-from datetime import datetime
-from decimal import Decimal
+from django.db import models
 
-from sqlalchemy import CheckConstraint, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
-
-from app.core.clock import utc_now
 from app.domain.enums import Condition, Position
-from app.models.base import Base, UtcDateTime, enum_column, money
+from app.models.club import Club
+from app.models.constraints import range_check, values_check
+from app.models.fields import enum_field, money_field
 
-COLUMNS_FROM_1_TO_99 = (
-    "velocidade",
-    "finalizacao",
-    "passe",
-    "drible",
-    "defesa",
-    "fisico",
-    "potencial",
-)
+ATTRIBUTE_FIELDS = ("pace", "shooting", "passing", "dribbling", "defending", "physical")
 
 
-def attribute_range_check(column: str) -> CheckConstraint:
-    return CheckConstraint(f"{column} BETWEEN 1 AND 99", name=f"{column}_entre_1_e_99")
-
-
-class Player(Base):
-    __tablename__ = "jogadores"
-    __table_args__ = (
-        CheckConstraint("agilidade BETWEEN 1 AND 100", name="agilidade_entre_1_e_100"),
-        CheckConstraint("idade BETWEEN 16 AND 45", name="idade_entre_16_e_45"),
-        CheckConstraint("valor_base >= 1", name="valor_base_minimo"),
-        *(attribute_range_check(column) for column in COLUMNS_FROM_1_TO_99),
+class Player(models.Model):
+    name = models.CharField(max_length=100, db_column="nome")
+    position = enum_field(Position, 3, db_column="posicao")
+    agility = models.IntegerField(db_column="agilidade")
+    age = models.IntegerField(db_column="idade")
+    base_value = money_field(6, db_column="valor_base")
+    condition = enum_field(Condition, 20, db_column="condicao")
+    club = models.ForeignKey(
+        Club, null=True, on_delete=models.PROTECT, related_name="players", db_column="clube_id"
     )
+    pace = models.IntegerField(db_column="velocidade")
+    shooting = models.IntegerField(db_column="finalizacao")
+    passing = models.IntegerField(db_column="passe")
+    dribbling = models.IntegerField(db_column="drible")
+    defending = models.IntegerField(db_column="defesa")
+    physical = models.IntegerField(db_column="fisico")
+    potential = models.IntegerField(db_column="potencial")
+    deleted_at = models.DateTimeField(null=True, db_column="excluido_em")
+    created_at = models.DateTimeField(auto_now_add=True, db_column="criado_em")
+    updated_at = models.DateTimeField(auto_now=True, db_column="atualizado_em")
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column("nome", String(100))
-    position: Mapped[Position] = mapped_column("posicao", enum_column(Position, 3, "posicao"))
-    agility: Mapped[int] = mapped_column("agilidade")
-    age: Mapped[int] = mapped_column("idade")
-    base_value: Mapped[Decimal] = mapped_column("valor_base", money(6))
-    condition: Mapped[Condition] = mapped_column(
-        "condicao", enum_column(Condition, 20, "condicao"), default=Condition.APTO
-    )
-    club_id: Mapped[int | None] = mapped_column("clube_id", ForeignKey("clubes.id"), index=True)
-    pace: Mapped[int] = mapped_column("velocidade")
-    shooting: Mapped[int] = mapped_column("finalizacao")
-    passing: Mapped[int] = mapped_column("passe")
-    dribbling: Mapped[int] = mapped_column("drible")
-    defending: Mapped[int] = mapped_column("defesa")
-    physical: Mapped[int] = mapped_column("fisico")
-    potential: Mapped[int] = mapped_column("potencial")
-    deleted_at: Mapped[datetime | None] = mapped_column("excluido_em", UtcDateTime)
-    created_at: Mapped[datetime] = mapped_column("criado_em", UtcDateTime, default=utc_now)
-    updated_at: Mapped[datetime] = mapped_column(
-        "atualizado_em", UtcDateTime, default=utc_now, onupdate=utc_now
-    )
+    class Meta:
+        db_table = "jogadores"
+        constraints = (
+            range_check("jogadores", "agility", 1, 100),
+            range_check("jogadores", "age", 16, 45),
+            range_check("jogadores", "potential", 1, 99),
+            *(range_check("jogadores", field, 1, 99) for field in ATTRIBUTE_FIELDS),
+            models.CheckConstraint(
+                condition=models.Q(base_value__gte=1), name="ck_jogadores_base_value_minimum"
+            ),
+            values_check("jogadores", "position", Position),
+            values_check("jogadores", "condition", Condition),
+        )

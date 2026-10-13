@@ -1,17 +1,18 @@
-from datetime import datetime
+from django.db import models
 
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
-
-from app.core.clock import utc_now
-from app.models.base import Base, UtcDateTime
+from app.models.club import Club
+from app.models.player import Player
 
 
-class LineupSlot(Base):
-    __tablename__ = "escalacoes"
-
-    club_id: Mapped[int] = mapped_column("clube_id", ForeignKey("clubes.id"), primary_key=True)
-    player_id: Mapped[int] = mapped_column(
-        "jogador_id", ForeignKey("jogadores.id"), primary_key=True, unique=True
+class LineupSlot(models.Model):
+    pk = models.CompositePrimaryKey("club_id", "player_id")
+    club = models.ForeignKey(
+        Club, on_delete=models.PROTECT, related_name="lineup_slots", db_column="clube_id"
     )
-    created_at: Mapped[datetime] = mapped_column("criado_em", UtcDateTime, default=utc_now)
+    player = models.OneToOneField(
+        Player, on_delete=models.PROTECT, related_name="lineup_slot", db_column="jogador_id"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_column="criado_em")
+
+    class Meta:
+        db_table = "escalacoes"
