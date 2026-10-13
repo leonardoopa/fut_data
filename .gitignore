@@ -8,3 +8,7 @@ db.sqlite3
 media/
 staticfiles/
 fotos-originais/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+dist/
