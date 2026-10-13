@@ -3,15 +3,15 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
 
 class Environment(BaseSettings):
-    """Variáveis de ambiente da API, lidas do processo ou do arquivo backend/.env."""
+    """Variáveis de ambiente da API, lidas do processo ou do arquivo .env da raiz."""
 
-    model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=REPOSITORY_ROOT / ".env", extra="ignore")
 
     mysql_host: str = "localhost"
     mysql_port: int = 3306

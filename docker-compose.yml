@@ -20,7 +20,9 @@ services:
       retries: 30
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
       MYSQL_HOST: db
       MYSQL_PORT: 3306
