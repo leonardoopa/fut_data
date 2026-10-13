@@ -75,3 +75,14 @@ Sem Docker:
 .venv/bin/ruff check backend
 .venv/bin/ruff format --check backend
 ```
+
+## Pre-commit
+
+Os hooks (Ruff, espaços no fim da linha, fim de arquivo, YAML, TOML e marcadores de conflito) ficam em `.pre-commit-config.yaml`. A versão do Ruff no hook acompanha a do `requirements.txt`.
+
+```bash
+.venv/bin/pre-commit install
+.venv/bin/pre-commit run --all-files
+```
+
+O primeiro comando ativa a verificação em cada `git commit`; o segundo verifica todos os arquivos manualmente.

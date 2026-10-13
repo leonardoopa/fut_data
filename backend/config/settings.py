@@ -34,8 +34,6 @@ LOGGING = {
             "datefmt": "%Y-%m-%dT%H:%M:%S%z",
         }
     },
-    "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "standard"}
-    },
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "standard"}},
     "root": {"handlers": ["console"], "level": environment.log_level},
 }

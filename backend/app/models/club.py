@@ -26,8 +26,6 @@ class Club(models.Model):
     class Meta:
         db_table = "clubes"
         constraints = (
-            models.CheckConstraint(
-                condition=models.Q(cash__gte=0), name="ck_clubes_cash_positive"
-            ),
+            models.CheckConstraint(condition=models.Q(cash__gte=0), name="ck_clubes_cash_positive"),
             values_check("clubes", "formation", Formation),
         )

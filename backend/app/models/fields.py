@@ -25,9 +25,7 @@ class BinaryCollationCharField(models.CharField):
         return parameters
 
 
-def enum_field(
-    enum_type: type[StrEnum], max_length: int, **options: Any
-) -> models.CharField:
+def enum_field(enum_type: type[StrEnum], max_length: int, **options: Any) -> models.CharField:
     choices = [(member.value, member.value) for member in enum_type]
     return models.CharField(max_length=max_length, choices=choices, **options)
 
