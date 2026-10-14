@@ -6,7 +6,6 @@ from django.db import transaction
 
 from app.core.clock import Clock
 from app.domain.market import (
-    PurchaseOrder,
     SaleSettlement,
     TransactionAmounts,
     ensure_purchase_allowed,
@@ -16,10 +15,10 @@ from app.domain.market import (
     validate_loyalty_until,
 )
 from app.domain.transaction_history import (
-    TransactionListCriteria,
     TransactionSummary,
     summarize_transactions,
 )
+from app.dtos.market import PurchaseOrder, TransactionListCriteria
 from app.models import Club, Contract, MarketTransaction, Player
 from app.repositories.club_repository import ClubRepository
 from app.repositories.contract_repository import ContractRepository

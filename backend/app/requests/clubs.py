@@ -4,8 +4,9 @@ from typing import Self
 
 from pydantic import BaseModel, model_validator
 
-from app.domain.club import ClubRegistration, validate_acronym_for_name
-from app.domain.club_listing import ClubListCriteria, ClubSort
+from app.domain.club import validate_acronym_for_name
+from app.domain.club_listing import ClubSort
+from app.dtos.club import ClubListCriteria, ClubRegistration
 from app.requests.fields import Acronym, ClubName
 
 

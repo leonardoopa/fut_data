@@ -1,7 +1,6 @@
 """Ordenação da listagem de clubes (RN11)."""
 
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
 from decimal import Decimal
 from enum import StrEnum
 from typing import Protocol
@@ -33,11 +32,6 @@ SORT_KEYS: dict[ClubSort, Callable[[ListedClub], tuple[Decimal, ...]]] = {
     ClubSort.NET_WORTH_ASC: lambda club: (club.net_worth,),
     ClubSort.NET_WORTH_DESC: lambda club: (-club.net_worth,),
 }
-
-
-@dataclass(frozen=True)
-class ClubListCriteria:
-    sort: ClubSort = ClubSort.NAME
 
 
 def sort_clubs[C: ListedClub](clubs: Iterable[C], sort: ClubSort) -> list[C]:

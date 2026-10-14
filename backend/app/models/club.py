@@ -7,11 +7,12 @@ from app.domain.club import (
     ACRONYM_LENGTH,
     INITIAL_CASH,
     NAME_MAX_LENGTH,
-    ClubRegistration,
     calculate_net_worth,
     calculate_squad_value,
+    name_key,
 )
 from app.domain.enums import Formation
+from app.dtos.club import ClubRegistration
 from app.models.constraints import values_check
 from app.models.fields import (
     BinaryCollationCharField,
@@ -43,7 +44,7 @@ class Club(models.Model):
         """Clube recém-criado: caixa inicial e sem jogadores (RN10)."""
         return cls(
             name=registration.name,
-            name_key=registration.name_key,
+            name_key=name_key(registration.name),
             acronym=registration.acronym,
             cash=INITIAL_CASH,
         )

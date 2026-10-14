@@ -1,12 +1,19 @@
 import string
-from dataclasses import dataclass
-from decimal import Decimal
 
-from app.domain.attributes import PlayerAttributes, calculate_overall
+from app.domain.attributes import PlayerAttributes
 from app.domain.enums import Condition, Position
-from app.domain.exceptions import BusinessRuleError, InvalidInputError
+from app.domain.exceptions import (
+    AgeDecreaseError,
+    AgilityAboveCapError,
+    AttributesTotalTooHighError,
+    InvalidInputError,
+    PlayerInClubDeletionError,
+    PositionLockedError,
+    PotentialBelowHighestAttributeError,
+    PotentialNotAtPeakError,
+    SickToFitError,
+)
 from app.domain.text import count_words
-from app.domain.valuation import calculate_base_value
 
 NAME_MIN_LENGTH = 3
 NAME_MAX_LENGTH = 100
@@ -31,31 +38,6 @@ POTENTIAL_PEAK_AGE = 33
 INITIAL_CONDITION = Condition.APTO
 
 
-@dataclass(frozen=True)
-class PlayerProfile:
-    """Nome, posição, agilidade e idade: o que o cadastro informa e o PUT pode mudar (RN08)."""
-
-    name: str
-    position: Position
-    agility: int
-    age: int
-
-
-@dataclass(frozen=True)
-class PlayerRegistration:
-    """Dados do cadastro; os atributos e o potencial não mudam depois (RN06)."""
-
-    profile: PlayerProfile
-    attributes: PlayerAttributes
-    potential: int
-
-    @property
-    def base_value(self) -> Decimal:
-        """Calculado uma única vez, com a posição, os atributos e a idade do cadastro (RN06)."""
-        overall = calculate_overall(self.profile.position, self.attributes)
-        return calculate_base_value(overall, self.potential, registration_age=self.profile.age)
-
-
 def validate_name(name: str) -> str:
     """Nome do jogador já normalizado pela V4: tamanho, palavras e dígitos."""
     if not NAME_MIN_LENGTH <= len(name) <= NAME_MAX_LENGTH:
@@ -69,17 +51,12 @@ def validate_name(name: str) -> str:
 
 def validate_agility(agility: int, age: int) -> None:
     if age >= AGILITY_CAP_AGE and agility > AGILITY_CAP:
-        raise InvalidInputError(
-            f"Com {AGILITY_CAP_AGE} anos ou mais, a agilidade (agility) deve ser no máximo "
-            f"{AGILITY_CAP}."
-        )
+        raise AgilityAboveCapError(AGILITY_CAP_AGE, AGILITY_CAP)
 
 
 def validate_attributes(attributes: PlayerAttributes) -> None:
     if attributes.total() > ATTRIBUTES_TOTAL_MAX:
-        raise InvalidInputError(
-            f"A soma dos seis atributos técnicos não pode passar de {ATTRIBUTES_TOTAL_MAX}."
-        )
+        raise AttributesTotalTooHighError(ATTRIBUTES_TOTAL_MAX)
 
 
 def validate_potential(
@@ -88,32 +65,29 @@ def validate_potential(
     """Só vale no cadastro: um PUT que leve a idade a 33 anos ou mais não muda o potencial."""
     highest = attributes.highest()
     if potential < highest:
-        raise InvalidInputError(
-            "O potencial (potential) deve ser maior ou igual ao maior dos seis atributos "
-            f"({highest})."
-        )
+        raise PotentialBelowHighestAttributeError(highest)
     if registration_age >= POTENTIAL_PEAK_AGE and potential != highest:
-        raise InvalidInputError(
-            f"No cadastro com {POTENTIAL_PEAK_AGE} anos ou mais, o potencial (potential) deve ser "
-            f"igual ao maior dos seis atributos ({highest})."
-        )
+        raise PotentialNotAtPeakError(POTENTIAL_PEAK_AGE, highest)
 
 
 def ensure_profile_change_allowed(
-    current: PlayerProfile, new: PlayerProfile, *, has_club: bool
+    *,
+    current_position: Position,
+    new_position: Position,
+    current_age: int,
+    new_age: int,
+    has_club: bool,
 ) -> None:
     """Regras do PUT que dependem do estado atual do jogador (RN08)."""
-    if has_club and new.position != current.position:
-        raise BusinessRuleError("Jogador com clube não pode mudar de posição.")
-    if new.age < current.age:
-        raise BusinessRuleError(f"A idade não pode ser menor que a atual ({current.age} anos).")
+    if has_club and new_position != current_position:
+        raise PositionLockedError
+    if new_age < current_age:
+        raise AgeDecreaseError(current_age)
 
 
 def ensure_condition_change_allowed(current: Condition, new: Condition) -> None:
     if current == Condition.DOENTE and new == Condition.APTO:
-        raise BusinessRuleError(
-            "Jogador DOENTE não pode passar direto para APTO; altere antes para MAL_CONDICIONADO."
-        )
+        raise SickToFitError
 
 
 def leaves_lineup(condition: Condition) -> bool:
@@ -124,6 +98,4 @@ def leaves_lineup(condition: Condition) -> bool:
 def ensure_deletable(*, has_club: bool) -> None:
     """Só jogador livre pode ser excluído (RN09)."""
     if has_club:
-        raise BusinessRuleError(
-            "Só jogador livre pode ser excluído; este jogador está no elenco de um clube."
-        )
+        raise PlayerInClubDeletionError

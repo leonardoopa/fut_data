@@ -1,21 +1,16 @@
 from django.db import transaction
 
 from app.core.clock import Clock
-from app.domain.enums import Condition
+from app.domain.enums import Condition, Position
 from app.domain.pagination import Page, paginate
 from app.domain.player import (
-    PlayerProfile,
-    PlayerRegistration,
     ensure_condition_change_allowed,
     ensure_deletable,
     ensure_profile_change_allowed,
     leaves_lineup,
 )
-from app.domain.player_listing import (
-    PlayerListCriteria,
-    filter_by_search_and_value,
-    sort_players,
-)
+from app.domain.player_listing import filter_by_search_and_value, sort_players
+from app.dtos.player import PlayerListCriteria, PlayerProfile, PlayerRegistration
 from app.models import Player
 from app.repositories.club_repository import ClubRepository
 from app.repositories.lineup_repository import LineupRepository
@@ -53,7 +48,13 @@ class PlayerService:
     @transaction.atomic
     def update(self, player_id: int, profile: PlayerProfile) -> Player:
         player = ensure_player_found(self._players.lock_active(player_id))
-        ensure_profile_change_allowed(player.profile, profile, has_club=player.has_club)
+        ensure_profile_change_allowed(
+            current_position=Position(player.position),
+            new_position=profile.position,
+            current_age=player.age,
+            new_age=profile.age,
+            has_club=player.has_club,
+        )
         player.change_profile(profile)
         self._players.save(player)
         return player
@@ -85,5 +86,10 @@ class PlayerService:
         if criteria.club_id is not None:
             ensure_club_exists(self._clubs, criteria.club_id)
         candidates = self._players.list_active(criteria)
-        selected = filter_by_search_and_value(candidates, criteria)
+        selected = filter_by_search_and_value(
+            candidates,
+            search=criteria.search,
+            min_value=criteria.min_value,
+            max_value=criteria.max_value,
+        )
         return paginate(sort_players(selected, criteria.sort), criteria.page, criteria.limit)

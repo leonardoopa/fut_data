@@ -1,5 +1,3 @@
-from dataclasses import replace
-from decimal import Decimal
 from itertools import product
 
 import pytest
@@ -8,8 +6,6 @@ from app.domain.attributes import PlayerAttributes
 from app.domain.enums import Condition, Position
 from app.domain.exceptions import BusinessRuleError, InvalidInputError
 from app.domain.player import (
-    PlayerProfile,
-    PlayerRegistration,
     ensure_condition_change_allowed,
     ensure_deletable,
     ensure_profile_change_allowed,
@@ -19,7 +15,6 @@ from app.domain.player import (
     validate_potential,
 )
 
-MEIA_LUA = PlayerProfile(name="Meia Lua", position=Position.MEI, agility=85, age=25)
 MEIA_LUA_ATTRIBUTES = PlayerAttributes(70, 68, 82, 79, 55, 64)
 
 
@@ -68,38 +63,48 @@ def test_potential_below_the_highest_attribute_or_above_it_from_33_years_is_refu
         validate_potential(potential, MEIA_LUA_ATTRIBUTES, registration_age=registration_age)
 
 
-def test_base_value_is_calculated_with_the_registration_data() -> None:
-    registration = PlayerRegistration(MEIA_LUA, MEIA_LUA_ATTRIBUTES, potential=86)
-
-    assert registration.base_value == Decimal("40.00")
-
-
 @pytest.mark.parametrize(
-    ("new_profile", "has_club"),
+    ("new_position", "new_age", "has_club"),
     [
-        (replace(MEIA_LUA, position=Position.ATA), False),
-        (replace(MEIA_LUA, name="Davi Melo", agility=70, age=26), True),
-        (replace(MEIA_LUA, age=33), True),
-        (MEIA_LUA, True),
+        (Position.ATA, 25, False),
+        (Position.MEI, 26, True),
+        (Position.MEI, 33, True),
+        (Position.MEI, 25, True),
     ],
 )
 def test_profile_change_that_keeps_the_rules_is_allowed(
-    new_profile: PlayerProfile, has_club: bool
+    new_position: Position, new_age: int, has_club: bool
 ) -> None:
-    ensure_profile_change_allowed(MEIA_LUA, new_profile, has_club=has_club)
+    ensure_profile_change_allowed(
+        current_position=Position.MEI,
+        new_position=new_position,
+        current_age=25,
+        new_age=new_age,
+        has_club=has_club,
+    )
 
 
 def test_player_with_club_cannot_change_position() -> None:
     with pytest.raises(BusinessRuleError, match="posição"):
         ensure_profile_change_allowed(
-            MEIA_LUA, replace(MEIA_LUA, position=Position.ATA), has_club=True
+            current_position=Position.MEI,
+            new_position=Position.ATA,
+            current_age=25,
+            new_age=25,
+            has_club=True,
         )
 
 
 @pytest.mark.parametrize("has_club", [False, True])
 def test_age_cannot_decrease(has_club: bool) -> None:
     with pytest.raises(BusinessRuleError, match="idade"):
-        ensure_profile_change_allowed(MEIA_LUA, replace(MEIA_LUA, age=24), has_club=has_club)
+        ensure_profile_change_allowed(
+            current_position=Position.MEI,
+            new_position=Position.MEI,
+            current_age=25,
+            new_age=24,
+            has_club=has_club,
+        )
 
 
 @pytest.mark.parametrize(

@@ -5,8 +5,7 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 
 from app.domain.enums import TransactionType
-from app.domain.market import PurchaseOrder
-from app.domain.transaction_history import TransactionListCriteria
+from app.dtos.market import PurchaseOrder, TransactionListCriteria
 from app.requests.fields import BrasiliaDateTime, StrictInteger
 from app.requests.query import QueryPositiveInteger, choice_list
 

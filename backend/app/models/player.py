@@ -17,10 +17,9 @@ from app.domain.player import (
     NAME_MAX_LENGTH,
     POTENTIAL_MAX,
     POTENTIAL_MIN,
-    PlayerProfile,
-    PlayerRegistration,
 )
-from app.domain.valuation import calculate_market_value
+from app.domain.valuation import calculate_base_value, calculate_market_value
+from app.dtos.player import PlayerProfile, PlayerRegistration
 from app.models.club import Club
 from app.models.constraints import range_check, values_check
 from app.models.fields import enum_field, money_field
@@ -81,19 +80,20 @@ class Player(models.Model):
 
     @classmethod
     def from_registration(cls, registration: PlayerRegistration) -> Self:
-        """Jogador recém-cadastrado: APTO, livre e com o valor base do cadastro (RN06)."""
+        """Jogador recém-cadastrado: APTO, livre e com o valor base do cadastro (RN06).
+
+        O valor base é calculado uma única vez, com a posição, os atributos e a idade do cadastro.
+        """
+        profile = registration.profile
+        overall = calculate_overall(profile.position, registration.attributes)
         return cls(
-            **asdict(registration.profile),
+            **asdict(profile),
             **asdict(registration.attributes),
             potential=registration.potential,
-            base_value=registration.base_value,
+            base_value=calculate_base_value(
+                overall, registration.potential, registration_age=profile.age
+            ),
             condition=INITIAL_CONDITION,
-        )
-
-    @property
-    def profile(self) -> PlayerProfile:
-        return PlayerProfile(
-            name=self.name, position=Position(self.position), agility=self.agility, age=self.age
         )
 
     @property
