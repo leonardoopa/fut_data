@@ -3,14 +3,20 @@ from decimal import Decimal
 
 import pytest
 
-from app.domain.enums import ContractStatus
+from app.domain.enums import ContractStatus, TransactionType
+from app.domain.exceptions import BusinessRuleError, InvalidInputError
 from app.domain.market import (
+    TransactionAmounts,
     calculate_commission,
+    contract_terms,
+    ensure_purchase_allowed,
+    ensure_sellable,
     penalty_percentage,
     purchase_limit,
     quote_purchase,
     remaining_loyalty_days,
     settle_sale,
+    validate_loyalty_until,
 )
 
 SOLD_AT = datetime(2026, 11, 5, 19, 40, tzinfo=UTC)
@@ -134,3 +140,103 @@ def test_sale_after_the_loyalty_period_ends_the_contract_without_penalty() -> No
 
     assert settlement.penalty == Decimal("0.00")
     assert settlement.contract_status == ContractStatus.ENCERRADO
+
+
+BOUGHT_AT = datetime(2026, 11, 2, 13, 15, tzinfo=UTC)
+
+
+@pytest.mark.parametrize(
+    "time_ahead",
+    [timedelta(minutes=1), timedelta(days=120), timedelta(days=1095)],
+)
+def test_loyalty_until_after_the_purchase_and_within_1095_days_is_accepted(
+    time_ahead: timedelta,
+) -> None:
+    validate_loyalty_until(BOUGHT_AT + time_ahead, BOUGHT_AT)
+
+
+@pytest.mark.parametrize(
+    ("time_ahead", "reason"),
+    [
+        (-timedelta(days=1), "posterior ao momento da compra"),
+        (timedelta(0), "posterior ao momento da compra"),
+        (timedelta(days=1095, minutes=1), "no máximo 1095 dias"),
+    ],
+)
+def test_loyalty_until_outside_the_window_is_refused(time_ahead: timedelta, reason: str) -> None:
+    with pytest.raises(InvalidInputError, match=reason):
+        validate_loyalty_until(BOUGHT_AT + time_ahead, BOUGHT_AT)
+
+
+def allowed_purchase(**changes: object) -> dict[str, object]:
+    return {
+        "player_is_free": True,
+        "sold_by_buyer": False,
+        "squad_size": 11,
+        "cash": Decimal("300.00"),
+        **changes,
+    }
+
+
+def test_purchase_is_allowed_up_to_half_of_the_cash_and_the_twelfth_player() -> None:
+    quote = quote_purchase(Decimal("47.62"))
+
+    ensure_purchase_allowed(quote, **allowed_purchase(cash=Decimal("100.00")))
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"player_is_free": False}, "não está livre"),
+        ({"sold_by_buyer": True}, "já vendeu"),
+        ({"squad_size": 12}, "máximo de 12 jogadores"),
+        ({"cash": Decimal("76.00")}, "passa de 50% do caixa"),
+    ],
+)
+def test_purchase_is_refused_by_the_state_of_the_player_and_the_club(
+    changes: dict[str, object], message: str
+) -> None:
+    with pytest.raises(BusinessRuleError, match=message):
+        ensure_purchase_allowed(quote_purchase(Decimal("37.00")), **allowed_purchase(**changes))
+
+
+def test_free_player_cannot_be_sold() -> None:
+    ensure_sellable(has_club=True)
+    with pytest.raises(BusinessRuleError, match="livre"):
+        ensure_sellable(has_club=False)
+
+
+def test_purchase_amounts_take_the_total_cost_from_the_cash() -> None:
+    amounts = quote_purchase(Decimal("37.00")).amounts
+
+    assert amounts == TransactionAmounts(
+        type=TransactionType.COMPRA,
+        value=Decimal("37.00"),
+        fee=Decimal("1.85"),
+        penalty=Decimal("0.00"),
+        profit=None,
+        cash_change=Decimal("-38.85"),
+    )
+
+
+def test_sale_amounts_record_the_commission_as_fee_and_credit_the_cash() -> None:
+    loyalty_until = datetime(2027, 3, 2, 13, 15, tzinfo=UTC)
+
+    amounts = settle_sale(Decimal("40.00"), Decimal("37.00"), loyalty_until, SOLD_AT).amounts
+
+    assert amounts == TransactionAmounts(
+        type=TransactionType.VENDA,
+        value=Decimal("40.00"),
+        fee=Decimal("0.30"),
+        penalty=Decimal("4.00"),
+        profit=Decimal("3.00"),
+        cash_change=Decimal("35.70"),
+    )
+
+
+def test_contract_terms_show_the_remaining_days_and_the_penalty_rate() -> None:
+    loyalty_until = datetime(2027, 3, 2, 13, 15, tzinfo=UTC)
+
+    terms = contract_terms(Decimal("37.00"), loyalty_until, BOUGHT_AT)
+
+    assert (terms.remaining_days, terms.penalty_percentage) == (120, 10)
