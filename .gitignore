@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+db.sqlite3
+media/
+staticfiles/
+fotos-originais/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+dist/
