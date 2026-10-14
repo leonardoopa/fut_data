@@ -4,10 +4,10 @@ from decimal import Decimal
 import pytest
 
 from app.domain.club import (
-    ClubRegistration,
     calculate_net_worth,
     calculate_squad_value,
     ensure_registration_allowed,
+    name_key,
     validate_acronym_for_name,
 )
 from app.domain.club_listing import ClubSort, sort_clubs
@@ -60,9 +60,7 @@ def test_acronym_that_does_not_match_the_name_is_refused(acronym: str, name: str
     ],
 )
 def test_name_key_ignores_case_but_keeps_accents(first: str, second: str, same_key: bool) -> None:
-    keys = (ClubRegistration(first, "AGU").name_key, ClubRegistration(second, "AGU").name_key)
-
-    assert (keys[0] == keys[1]) is same_key
+    assert (name_key(first) == name_key(second)) is same_key
 
 
 def test_registration_is_allowed_up_to_the_twentieth_club() -> None:

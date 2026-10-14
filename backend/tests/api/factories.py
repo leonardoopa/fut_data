@@ -1,9 +1,10 @@
 """Montagem dos cenários dos testes de API.
 
-As escalações são criadas direto pelo ORM, porque o endpoint de escalação ainda não existe;
-`create_club` e `sign_player` montam pelo ORM os cenários que não dependem do mercado.
+`create_club`, `sign_player` e `sign_squad` montam pelo ORM os cenários que não dependem do
+mercado; `field_lineup` escala os titulares pela própria API.
 """
 
+from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -12,10 +13,12 @@ from fastapi.testclient import TestClient
 from httpx2 import Response
 
 from app.domain.brasilia_time import BRASILIA
-from app.models import Club, LineupSlot, MarketTransaction, Player
+from app.models import Club, LineupSlot, MarketTransaction, Match, Player
 
 PLAYERS_URL = "/api/v1/players"
 CLUBS_URL = "/api/v1/clubs"
+MATCHES_URL = "/api/v1/matches"
+STANDINGS_URL = "/api/v1/standings"
 
 AGUIAS: dict[str, Any] = {"name": "Águias FC", "acronym": "AGU"}
 
@@ -50,6 +53,18 @@ def transactions_url(club_id: int | str) -> str:
     return f"{club_url(club_id)}/transactions"
 
 
+def export_url(club_id: int | str) -> str:
+    return f"{transactions_url(club_id)}/export"
+
+
+def lineup_url(club_id: int | str) -> str:
+    return f"{club_url(club_id)}/lineup"
+
+
+def match_url(match_id: int | str) -> str:
+    return f"{MATCHES_URL}/{match_id}"
+
+
 def register_player(client: TestClient, **changes: Any) -> dict[str, Any]:
     response = client.post(PLAYERS_URL, json={**MEIA_LUA, **changes})
     assert response.status_code == 201, response.text
@@ -78,12 +93,12 @@ def insert_player(name: str, **fields: Any) -> Player:
     return Player.objects.create(name=name, **{**defaults, **fields})
 
 
-def create_club(acronym: str = "AGU", formation: str = "2-2") -> Club:
+def create_club(
+    acronym: str = "AGU", formation: str | None = "2-2", name: str | None = None
+) -> Club:
+    club_name = name or f"Clube {acronym}"
     return Club.objects.create(
-        name=f"Clube {acronym}",
-        name_key=f"clube {acronym.lower()}",
-        acronym=acronym,
-        formation=formation,
+        name=club_name, name_key=club_name.lower(), acronym=acronym, formation=formation
     )
 
 
@@ -91,6 +106,64 @@ def sign_player(player_id: int, club: Club, *, starter: bool = False) -> None:
     Player.objects.filter(pk=player_id).update(club=club)
     if starter:
         LineupSlot.objects.create(club=club, player_id=player_id)
+
+
+FORMATION_POSITIONS: dict[str, tuple[str, ...]] = {
+    "3-1": ("GOL", "ZAG", "ZAG", "LAT", "ATA"),
+    "2-2": ("GOL", "ZAG", "LAT", "ATA", "ATA"),
+    "2-1-1": ("GOL", "ZAG", "LAT", "MEI", "ATA"),
+    "1-2-1": ("GOL", "LAT", "MEI", "MEI", "ATA"),
+}
+
+
+def sign_squad(club: Club, positions: Sequence[str]) -> list[Player]:
+    """Um jogador do elenco para cada posição, com nomes que seguem a ordem das posições."""
+    players = [
+        insert_player(f"Titular {club.acronym} {chr(ord('A') + index)}", position=position)
+        for index, position in enumerate(positions)
+    ]
+    for player in players:
+        sign_player(player.id, club)
+    return players
+
+
+def put_lineup(client: TestClient, club_id: int | str, formation: Any, player_ids: Any) -> Response:
+    return client.put(lineup_url(club_id), json={"formation": formation, "player_ids": player_ids})
+
+
+def field_lineup(client: TestClient, club: Club, formation: str, players: Sequence[Player]) -> None:
+    response = put_lineup(client, club.id, formation, [player.id for player in players])
+    assert response.status_code == 200, response.text
+
+
+def ready_club(client: TestClient, acronym: str, formation: str = "2-1-1") -> Club:
+    """Clube com elenco de 5 e a escalação completa."""
+    club = create_club(acronym, formation=None)
+    field_lineup(client, club, formation, sign_squad(club, FORMATION_POSITIONS[formation]))
+    return club
+
+
+def buy_squad(client: TestClient, club_id: int, positions: Sequence[str]) -> list[Player]:
+    """Um jogador livre para cada posição, comprado pelo clube no mercado."""
+    players = [
+        insert_player(f"Comprado {chr(ord('A') + index)}", position=position)
+        for index, position in enumerate(positions)
+    ]
+    for player in players:
+        assert buy(client, player.id, club_id).status_code == 200
+    return players
+
+
+def insert_match(home: Club, away: Club, home_goals: int, away_goals: int) -> Match:
+    return Match.objects.create(
+        home_club=home,
+        away_club=away,
+        home_goals=home_goals,
+        away_goals=away_goals,
+        home_formation="2-2",
+        away_formation="2-2",
+        played_at=BOUGHT_AT,
+    )
 
 
 def register_club(client: TestClient, **changes: Any) -> dict[str, Any]:

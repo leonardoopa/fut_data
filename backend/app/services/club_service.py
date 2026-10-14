@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
 from app.core.clock import Clock
-from app.domain.club import ClubRegistration, ensure_registration_allowed, sort_squad
-from app.domain.club_listing import ClubListCriteria, sort_clubs
+from app.domain.club import ensure_registration_allowed, name_key, sort_squad
+from app.domain.club_listing import sort_clubs
 from app.domain.market import ContractTerms
+from app.dtos.club import ClubListCriteria, ClubRegistration
 from app.models import Club, Player
 from app.repositories.club_repository import ClubRepository
 from app.repositories.contract_repository import ContractRepository
@@ -33,7 +34,7 @@ class ClubService:
     def register(self, registration: ClubRegistration) -> Club:
         ensure_registration_allowed(
             club_count=self._clubs.count(),
-            name_taken=self._clubs.is_name_taken(registration.name_key),
+            name_taken=self._clubs.is_name_taken(name_key(registration.name)),
             acronym_taken=self._clubs.is_acronym_taken(registration.acronym),
         )
         club = Club.from_registration(registration)

@@ -12,6 +12,7 @@ from app.repositories.transaction_repository import TransactionRepository
 from app.requests.market import PurchaseRequest, TransactionListQuery
 from app.requests.path import ResourceId
 from app.services.market_service import MarketService
+from app.views.transaction_csv import CsvResponse, transactions_csv_response
 from app.views.transaction_view import PurchaseView, SaleView, TransactionHistoryView
 
 router = DatabaseRouter(tags=["Mercado"])
@@ -51,4 +52,19 @@ def list_transactions(
 ) -> TransactionHistoryView:
     return TransactionHistoryView.from_history(
         service.list_transactions(club_id, query.to_criteria())
+    )
+
+
+@router.get(
+    "/clubs/{club_id}/transactions/export",
+    response_class=CsvResponse,
+    summary="Exporta o histórico de transações do clube em CSV (RN18)",
+)
+def export_transactions(
+    club_id: ResourceId,
+    query: Annotated[TransactionListQuery, Query()],
+    service: MarketServiceDependency,
+) -> CsvResponse:
+    return transactions_csv_response(
+        club_id, service.export_transactions(club_id, query.to_criteria())
     )

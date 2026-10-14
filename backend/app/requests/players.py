@@ -15,8 +15,6 @@ from app.domain.player import (
     ATTRIBUTE_MIN,
     POTENTIAL_MAX,
     POTENTIAL_MIN,
-    PlayerProfile,
-    PlayerRegistration,
     validate_agility,
     validate_attributes,
     validate_potential,
@@ -26,10 +24,12 @@ from app.domain.player_listing import (
     MAX_SORT_CRITERIA,
     VALUE_FILTER_MAX,
     VALUE_FILTER_MIN,
-    PlayerListCriteria,
     PlayerSort,
-    validate_criteria,
+    validate_age_range,
+    validate_club_filter,
+    validate_value_range,
 )
+from app.dtos.player import PlayerListCriteria, PlayerProfile, PlayerRegistration
 from app.requests.fields import PlayerName, StrictInteger
 from app.requests.query import (
     QueryBoolean,
@@ -130,7 +130,10 @@ class PlayerListQuery(BaseModel):
 
     @model_validator(mode="after")
     def reject_contradictory_filters(self) -> Self:
-        validate_criteria(self.to_criteria())
+        criteria = self.to_criteria()
+        validate_age_range(criteria.min_age, criteria.max_age)
+        validate_value_range(criteria.min_value, criteria.max_value)
+        validate_club_filter(criteria.free, criteria.club_id)
         return self
 
     def to_criteria(self) -> PlayerListCriteria:

@@ -3,7 +3,15 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from app.domain.enums import ContractStatus, TransactionType
-from app.domain.exceptions import BusinessRuleError, InvalidInputError
+from app.domain.exceptions import (
+    CashLimitExceededError,
+    FreePlayerSaleError,
+    LoyaltyNotInFutureError,
+    LoyaltyTooLongError,
+    PlayerNotFreeError,
+    RepurchaseError,
+    SquadFullError,
+)
 from app.domain.rounding import ZERO_MONEY, percent_of, round_money
 
 PURCHASE_FEE_PERCENTAGE = 5
@@ -21,14 +29,6 @@ MAX_LOYALTY_DAYS = 1095
 MAX_SQUAD_SIZE = 12
 
 DAY = timedelta(days=1)
-
-
-@dataclass(frozen=True)
-class PurchaseOrder:
-    """Pedido de compra: o clube comprador e o fim da fidelidade (RN12)."""
-
-    club_id: int
-    loyalty_until: datetime
 
 
 @dataclass(frozen=True)
@@ -114,14 +114,9 @@ class ContractTerms:
 def validate_loyalty_until(loyalty_until: datetime, moment: datetime) -> None:
     """O fim da fidelidade fica depois do momento da compra e até 1.095 dias depois dele."""
     if loyalty_until <= moment:
-        raise InvalidInputError(
-            "O fim da fidelidade (loyalty_until) deve ser posterior ao momento da compra."
-        )
+        raise LoyaltyNotInFutureError
     if loyalty_until > moment + MAX_LOYALTY_DAYS * DAY:
-        raise InvalidInputError(
-            f"O fim da fidelidade (loyalty_until) pode ser no máximo {MAX_LOYALTY_DAYS} dias "
-            "depois do momento da compra."
-        )
+        raise LoyaltyTooLongError(MAX_LOYALTY_DAYS)
 
 
 def ensure_purchase_allowed(
@@ -134,20 +129,18 @@ def ensure_purchase_allowed(
 ) -> None:
     """Regras da compra que dependem do estado atual do jogador e do clube (RN12 a RN14)."""
     if not player_is_free:
-        raise BusinessRuleError("O jogador não está livre: já pertence a um clube.")
+        raise PlayerNotFreeError
     if sold_by_buyer:
-        raise BusinessRuleError("O clube não pode comprar um jogador que ele mesmo já vendeu.")
+        raise RepurchaseError
     if squad_size >= MAX_SQUAD_SIZE:
-        raise BusinessRuleError(f"O elenco já tem o máximo de {MAX_SQUAD_SIZE} jogadores.")
+        raise SquadFullError(MAX_SQUAD_SIZE)
     if quote.total_cost > purchase_limit(cash):
-        raise BusinessRuleError(
-            f"O custo total ({quote.total_cost}) passa de 50% do caixa do clube ({cash})."
-        )
+        raise CashLimitExceededError(quote.total_cost, cash)
 
 
 def ensure_sellable(*, has_club: bool) -> None:
     if not has_club:
-        raise BusinessRuleError("Jogador livre não pode ser vendido.")
+        raise FreePlayerSaleError
 
 
 def quote_purchase(market_value: Decimal) -> PurchaseQuote:

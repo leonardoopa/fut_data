@@ -1,26 +1,38 @@
-"""Busca de jogadores e clubes pelos casos de uso: inexistente vira 404 (V8)."""
+"""Busca de jogadores, clubes e partidas pelos casos de uso: inexistente vira 404 (V8)."""
 
-from app.domain.exceptions import NotFoundError
-from app.models import Club, Player
+from collections.abc import Collection
+
+from app.domain.exceptions import ClubNotFoundError, MatchNotFoundError, PlayerNotFoundError
+from app.models import Club, Match, Player
 from app.repositories.club_repository import ClubRepository
-
-PLAYER_NOT_FOUND = "Jogador não encontrado."
-CLUB_NOT_FOUND = "Clube não encontrado."
 
 
 def ensure_player_found(player: Player | None) -> Player:
     """O jogador excluído conta como inexistente (RN09)."""
     if player is None:
-        raise NotFoundError(PLAYER_NOT_FOUND)
+        raise PlayerNotFoundError
     return player
+
+
+def ensure_players_found(players: list[Player], player_ids: Collection[int]) -> list[Player]:
+    """Todos os ids pedidos precisam ser de jogadores ativos (RN09)."""
+    if len(players) < len(player_ids):
+        raise PlayerNotFoundError
+    return players
 
 
 def ensure_club_found(club: Club | None) -> Club:
     if club is None:
-        raise NotFoundError(CLUB_NOT_FOUND)
+        raise ClubNotFoundError
     return club
 
 
 def ensure_club_exists(clubs: ClubRepository, club_id: int) -> None:
     if not clubs.exists(club_id):
-        raise NotFoundError(CLUB_NOT_FOUND)
+        raise ClubNotFoundError
+
+
+def ensure_match_found(match: Match | None) -> Match:
+    if match is None:
+        raise MatchNotFoundError
+    return match

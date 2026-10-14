@@ -38,3 +38,9 @@ class DuelAttribute(StrEnum):
     PASSING = "passing"
     DRIBBLING = "dribbling"
     DEFENDING = "defending"
+
+
+class MatchResult(StrEnum):
+    MANDANTE = "MANDANTE"
+    VISITANTE = "VISITANTE"
+    EMPATE = "EMPATE"
