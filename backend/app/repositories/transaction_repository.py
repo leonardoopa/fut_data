@@ -1,5 +1,5 @@
 from app.domain.enums import TransactionType
-from app.domain.transaction_history import TransactionListCriteria
+from app.dtos.market import TransactionListCriteria
 from app.models import MarketTransaction
 
 

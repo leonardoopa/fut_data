@@ -6,7 +6,6 @@ from app.domain.exceptions import InvalidInputError, NotFoundError
 from app.requests.query import parse_positive_integer
 
 MAX_RESOURCE_ID = 2_147_483_647
-RESOURCE_NOT_FOUND = "Recurso não encontrado."
 
 
 def parse_resource_id(raw: object) -> int:
@@ -18,9 +17,9 @@ def parse_resource_id(raw: object) -> int:
     try:
         resource_id = parse_positive_integer(raw)
     except InvalidInputError as error:
-        raise NotFoundError(RESOURCE_NOT_FOUND) from error
+        raise NotFoundError from error
     if resource_id > MAX_RESOURCE_ID:
-        raise NotFoundError(RESOURCE_NOT_FOUND)
+        raise NotFoundError
     return resource_id
 
 

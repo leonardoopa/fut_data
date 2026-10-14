@@ -1,9 +1,7 @@
 from django.db import IntegrityError
 
-from app.domain.exceptions import BusinessRuleError
+from app.domain.exceptions import ClubAlreadyRegisteredError
 from app.models import Club
-
-CLUB_ALREADY_REGISTERED = "Já existe um clube com este nome ou esta sigla."
 
 
 class ClubRepository:
@@ -24,7 +22,7 @@ class ClubRepository:
         try:
             club.save()
         except IntegrityError as error:
-            raise BusinessRuleError(CLUB_ALREADY_REGISTERED) from error
+            raise ClubAlreadyRegisteredError from error
 
     def save(self, club: Club) -> None:
         club.save()

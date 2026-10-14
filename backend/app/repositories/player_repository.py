@@ -1,4 +1,4 @@
-from app.domain.player_listing import PlayerListCriteria
+from app.dtos.player import PlayerListCriteria
 from app.models import Player
 
 
