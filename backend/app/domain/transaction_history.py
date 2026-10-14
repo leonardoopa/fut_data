@@ -32,12 +32,6 @@ class RecordedTransaction(Protocol):
 
 
 @dataclass(frozen=True)
-class TransactionListCriteria:
-    type: tuple[TransactionType, ...] = tuple(TransactionType)
-    player_id: int | None = None
-
-
-@dataclass(frozen=True)
 class TransactionSummary:
     total_spent: Decimal
     total_received: Decimal

@@ -1,9 +1,14 @@
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass
 from decimal import Decimal
 
-from app.domain.exceptions import BusinessRuleError, InvalidInputError
+from app.domain.exceptions import (
+    AcronymMismatchError,
+    ClubAcronymTakenError,
+    ClubNameTakenError,
+    InvalidInputError,
+    LeagueFullError,
+)
 from app.domain.player_listing import ListedPlayer, PlayerSort, sort_players
 from app.domain.rounding import ZERO_MONEY
 from app.domain.text import alphabetical_key, count_words, is_letter
@@ -55,10 +60,7 @@ def validate_acronym_for_name(acronym: str, name: str) -> None:
     following_letters = iter(name_letters[1:])
     starts_with_first_letter = bool(name_letters) and name_letters[0] == first
     if not starts_with_first_letter or not all(letter in following_letters for letter in others):
-        raise InvalidInputError(
-            "A sigla (acronym) deve começar pela primeira letra do nome e ter as outras duas "
-            "letras na ordem em que aparecem no nome."
-        )
+        raise AcronymMismatchError
 
 
 def name_key(name: str) -> str:
@@ -66,23 +68,13 @@ def name_key(name: str) -> str:
     return name.lower()
 
 
-@dataclass(frozen=True)
-class ClubRegistration:
-    name: str
-    acronym: str
-
-    @property
-    def name_key(self) -> str:
-        return name_key(self.name)
-
-
 def ensure_registration_allowed(*, club_count: int, name_taken: bool, acronym_taken: bool) -> None:
     if name_taken:
-        raise BusinessRuleError("Já existe um clube com este nome.")
+        raise ClubNameTakenError
     if acronym_taken:
-        raise BusinessRuleError("Já existe um clube com esta sigla.")
+        raise ClubAcronymTakenError
     if club_count >= MAX_CLUBS:
-        raise BusinessRuleError(f"A liga já tem o máximo de {MAX_CLUBS} clubes.")
+        raise LeagueFullError(MAX_CLUBS)
 
 
 def calculate_squad_value(market_values: Iterable[Decimal]) -> Decimal:
