@@ -2,7 +2,6 @@ from django.db import transaction
 
 from app.core.clock import Clock
 from app.domain.enums import Condition
-from app.domain.exceptions import NotFoundError
 from app.domain.pagination import Page, paginate
 from app.domain.player import (
     PlayerProfile,
@@ -21,16 +20,7 @@ from app.models import Player
 from app.repositories.club_repository import ClubRepository
 from app.repositories.lineup_repository import LineupRepository
 from app.repositories.player_repository import PlayerRepository
-
-PLAYER_NOT_FOUND = "Jogador não encontrado."
-CLUB_NOT_FOUND = "Clube não encontrado."
-
-
-def ensure_found(player: Player | None) -> Player:
-    """O jogador excluído conta como inexistente (RN09)."""
-    if player is None:
-        raise NotFoundError(PLAYER_NOT_FOUND)
-    return player
+from app.services.lookups import ensure_club_exists, ensure_player_found
 
 
 class PlayerService:
@@ -58,11 +48,11 @@ class PlayerService:
         return player
 
     def get(self, player_id: int) -> Player:
-        return ensure_found(self._players.get_active(player_id))
+        return ensure_player_found(self._players.get_active(player_id))
 
     @transaction.atomic
     def update(self, player_id: int, profile: PlayerProfile) -> Player:
-        player = ensure_found(self._players.lock_active(player_id))
+        player = ensure_player_found(self._players.lock_active(player_id))
         ensure_profile_change_allowed(player.profile, profile, has_club=player.has_club)
         player.change_profile(profile)
         self._players.save(player)
@@ -71,7 +61,7 @@ class PlayerService:
     @transaction.atomic
     def change_condition(self, player_id: int, condition: Condition) -> Player:
         """Enviar a condição atual é aceito, sem mudança; o titular DOENTE sai da escalação."""
-        player = ensure_found(self._players.lock_active(player_id))
+        player = ensure_player_found(self._players.lock_active(player_id))
         current = Condition(player.condition)
         if condition == current:
             return player
@@ -85,15 +75,15 @@ class PlayerService:
     @transaction.atomic
     def delete(self, player_id: int) -> None:
         """Exclusão lógica: grava o momento em excluido_em e não apaga nada (RN09)."""
-        player = ensure_found(self._players.lock_active(player_id))
+        player = ensure_player_found(self._players.lock_active(player_id))
         ensure_deletable(has_club=player.has_club)
         player.deleted_at = self._clock()
         self._players.save(player)
 
     def list_players(self, criteria: PlayerListCriteria) -> Page[Player]:
         """A paginação vem depois da busca, dos filtros e da ordenação (RN07)."""
-        if criteria.club_id is not None and not self._clubs.exists(criteria.club_id):
-            raise NotFoundError(CLUB_NOT_FOUND)
+        if criteria.club_id is not None:
+            ensure_club_exists(self._clubs, criteria.club_id)
         candidates = self._players.list_active(criteria)
         selected = filter_by_search_and_value(candidates, criteria)
         return paginate(sort_players(selected, criteria.sort), criteria.page, criteria.limit)
