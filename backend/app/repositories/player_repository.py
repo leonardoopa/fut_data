@@ -13,6 +13,9 @@ class PlayerRepository:
     def save(self, player: Player) -> None:
         player.save()
 
+    def count_in_club(self, club_id: int) -> int:
+        return Player.objects.filter(club_id=club_id).count()
+
     def list_active(self, criteria: PlayerListCriteria) -> list[Player]:
         """Aplica no banco só os filtros que são colunas; a busca e o valor ficam de fora."""
         column_filters = {
