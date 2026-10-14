@@ -1,12 +1,37 @@
+from dataclasses import asdict, fields
+from decimal import Decimal
+from typing import Self
+
 from django.db import models
 
+from app.domain.attributes import PlayerAttributes, calculate_overall
 from app.domain.enums import Condition, Position
-from app.domain.player import NAME_MAX_LENGTH
+from app.domain.player import (
+    AGE_MAX,
+    AGE_MIN,
+    AGILITY_MAX,
+    AGILITY_MIN,
+    ATTRIBUTE_MAX,
+    ATTRIBUTE_MIN,
+    INITIAL_CONDITION,
+    NAME_MAX_LENGTH,
+    POTENTIAL_MAX,
+    POTENTIAL_MIN,
+    PlayerProfile,
+    PlayerRegistration,
+)
+from app.domain.valuation import calculate_market_value
 from app.models.club import Club
 from app.models.constraints import range_check, values_check
 from app.models.fields import enum_field, money_field
 
-ATTRIBUTE_FIELDS = ("pace", "shooting", "passing", "dribbling", "defending", "physical")
+ATTRIBUTE_FIELDS = tuple(field.name for field in fields(PlayerAttributes))
+
+
+class PlayerQuerySet(models.QuerySet["Player"]):
+    def active(self) -> Self:
+        """Sem os excluídos, que contam como inexistentes em toda a API (RN09)."""
+        return self.filter(deleted_at__isnull=True)
 
 
 class Player(models.Model):
@@ -34,13 +59,18 @@ class Player(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_column="criado_em")
     updated_at = models.DateTimeField(auto_now=True, db_column="atualizado_em")
 
+    objects = PlayerQuerySet.as_manager()
+
     class Meta:
         db_table = "jogadores"
         constraints = (
-            range_check("jogadores", "agility", 1, 100),
-            range_check("jogadores", "age", 16, 45),
-            range_check("jogadores", "potential", 1, 99),
-            *(range_check("jogadores", field, 1, 99) for field in ATTRIBUTE_FIELDS),
+            range_check("jogadores", "agility", AGILITY_MIN, AGILITY_MAX),
+            range_check("jogadores", "age", AGE_MIN, AGE_MAX),
+            range_check("jogadores", "potential", POTENTIAL_MIN, POTENTIAL_MAX),
+            *(
+                range_check("jogadores", field, ATTRIBUTE_MIN, ATTRIBUTE_MAX)
+                for field in ATTRIBUTE_FIELDS
+            ),
             models.CheckConstraint(
                 condition=models.Q(base_value__gte=1),
                 name="ck_jogadores_base_value_minimum",
@@ -48,3 +78,46 @@ class Player(models.Model):
             values_check("jogadores", "position", Position),
             values_check("jogadores", "condition", Condition),
         )
+
+    @classmethod
+    def from_registration(cls, registration: PlayerRegistration) -> Self:
+        """Jogador recém-cadastrado: APTO, livre e com o valor base do cadastro (RN06)."""
+        return cls(
+            **asdict(registration.profile),
+            **asdict(registration.attributes),
+            potential=registration.potential,
+            base_value=registration.base_value,
+            condition=INITIAL_CONDITION,
+        )
+
+    @property
+    def profile(self) -> PlayerProfile:
+        return PlayerProfile(
+            name=self.name, position=Position(self.position), agility=self.agility, age=self.age
+        )
+
+    @property
+    def attributes(self) -> PlayerAttributes:
+        return PlayerAttributes(**{field: getattr(self, field) for field in ATTRIBUTE_FIELDS})
+
+    @property
+    def overall(self) -> int:
+        """Calculado a cada consulta, nunca gravado: a posição pode mudar no PUT (RN06)."""
+        return calculate_overall(Position(self.position), self.attributes)
+
+    @property
+    def market_value(self) -> Decimal:
+        """Calculado a cada consulta, com a condição, a agilidade e a idade atuais (RN05)."""
+        return calculate_market_value(
+            self.base_value, Condition(self.condition), self.agility, self.age
+        )
+
+    @property
+    def has_club(self) -> bool:
+        return self.club_id is not None
+
+    def change_profile(self, profile: PlayerProfile) -> None:
+        self.name = profile.name
+        self.position = profile.position
+        self.agility = profile.agility
+        self.age = profile.age

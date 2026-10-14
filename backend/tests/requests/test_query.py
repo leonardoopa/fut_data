@@ -103,6 +103,18 @@ def test_choice_list_rejects_invalid_or_repeated_values(raw: str) -> None:
         TransactionTypes.validate_python(raw)
 
 
+def test_choice_list_reads_the_single_occurrence_that_fastapi_delivers() -> None:
+    assert TransactionTypes.validate_python(["VENDA,COMPRA"]) == (
+        TransactionType.VENDA,
+        TransactionType.COMPRA,
+    )
+
+
+def test_choice_list_rejects_a_repeated_parameter() -> None:
+    with pytest.raises(ValidationError):
+        TransactionTypes.validate_python(["VENDA", "COMPRA"])
+
+
 def test_choice_list_accepts_two_criteria_of_different_fields() -> None:
     assert SortOptions.validate_python("value_desc,age_asc") == (
         SortOption.VALUE_DESC,
