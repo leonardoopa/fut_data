@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, Query, Request, Response
 
-from app.core.clock import system_clock
+from app.core.clock import Clock, get_clock
 from app.core.database import DatabaseRouter
 from app.repositories.club_repository import ClubRepository
 from app.repositories.lineup_repository import LineupRepository
@@ -21,12 +21,12 @@ from app.views.player_view import PlayerPageView, PlayerView
 router = DatabaseRouter(prefix="/players", tags=["Jogadores"])
 
 
-def get_player_service() -> PlayerService:
+def get_player_service(clock: Annotated[Clock, Depends(get_clock)]) -> PlayerService:
     return PlayerService(
         players=PlayerRepository(),
         clubs=ClubRepository(),
         lineups=LineupRepository(),
-        clock=system_clock,
+        clock=clock,
     )
 
 
