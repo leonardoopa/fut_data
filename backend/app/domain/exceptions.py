@@ -162,3 +162,38 @@ class CashLimitExceededError(BusinessRuleError):
 
 class FreePlayerSaleError(BusinessRuleError):
     message = "Jogador livre não pode ser vendido."
+
+
+class MatchNotFoundError(NotFoundError):
+    message = "Partida não encontrada."
+
+
+class RepeatedStartersError(InvalidInputError):
+    message = "Os ids de player_ids devem ser distintos: um jogador não entra duas vezes."
+
+
+class SameClubMatchError(InvalidInputError):
+    message = "O mandante (home_club_id) e o visitante (away_club_id) devem ser clubes diferentes."
+
+
+class StarterNotInSquadError(BusinessRuleError):
+    message = "Só jogadores do elenco do clube podem ser escalados."
+
+
+class SickStarterError(BusinessRuleError):
+    message = "Jogador DOENTE não pode ser escalado."
+
+
+class FormationMismatchError(BusinessRuleError):
+    def __init__(self, formation: str) -> None:
+        super().__init__(
+            f"As posições dos titulares não fecham a formação {formation}: são 1 goleiro (GOL) "
+            "e, em cada setor, a quantidade de jogadores da formação."
+        )
+
+
+class IncompleteLineupError(BusinessRuleError):
+    def __init__(self, club_name: str, lineup_size: int) -> None:
+        super().__init__(
+            f"O clube {club_name} não tem a escalação completa com {lineup_size} titulares."
+        )
