@@ -1,6 +1,10 @@
+from datetime import datetime
+from typing import Self
+
 from django.db import models
 
 from app.domain.enums import TransactionType
+from app.domain.market import TransactionAmounts
 from app.domain.player import NAME_MAX_LENGTH
 from app.models.club import Club
 from app.models.constraints import values_check
@@ -36,3 +40,21 @@ class MarketTransaction(models.Model):
             models.Index(fields=("club", "created_at"), name="ix_transacoes_club_created_at"),
         )
         constraints = (values_check("transacoes", "type", TransactionType),)
+
+    @classmethod
+    def record(
+        cls, club: Club, player: Player, amounts: TransactionAmounts, moment: datetime
+    ) -> Self:
+        """Guarda os valores e o nome do jogador no momento; nunca é recalculada (RN17)."""
+        return cls(
+            club=club,
+            player=player,
+            player_name=player.name,
+            type=amounts.type,
+            value=amounts.value,
+            fee=amounts.fee,
+            penalty=amounts.penalty,
+            profit=amounts.profit,
+            cash_change=amounts.cash_change,
+            created_at=moment,
+        )
