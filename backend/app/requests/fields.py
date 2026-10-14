@@ -7,7 +7,7 @@ maiúsculas e minúsculas exatas, como pede a V5.
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import AfterValidator, PlainValidator
+from pydantic import AfterValidator, Field, PlainValidator
 
 from app.domain import club, player
 from app.domain.brasilia_time import parse_brasilia_datetime
@@ -42,6 +42,7 @@ def parse_datetime(value: object) -> datetime:
 
 
 StrictInteger = Annotated[int, PlainValidator(parse_strict_integer, json_schema_input_type=int)]
+PositiveId = Annotated[StrictInteger, Field(ge=1)]
 NormalizedText = Annotated[str, PlainValidator(parse_normalized_text, json_schema_input_type=str)]
 PlayerName = Annotated[NormalizedText, AfterValidator(player.validate_name)]
 ClubName = Annotated[NormalizedText, AfterValidator(club.validate_name)]

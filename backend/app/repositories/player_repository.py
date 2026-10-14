@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 from app.dtos.player import PlayerListCriteria
 from app.models import Player
 
@@ -9,6 +11,12 @@ class PlayerRepository:
     def lock_active(self, player_id: int) -> Player | None:
         """Como get_active, mas trava a linha até o fim da transação (SELECT ... FOR UPDATE)."""
         return Player.objects.active().select_for_update().filter(pk=player_id).first()
+
+    def lock_active_many(self, player_ids: Iterable[int]) -> list[Player]:
+        """Os jogadores ativos entre os ids, travados em ordem crescente de id."""
+        return list(
+            Player.objects.active().select_for_update().filter(pk__in=player_ids).order_by("id")
+        )
 
     def save(self, player: Player) -> None:
         player.save()
