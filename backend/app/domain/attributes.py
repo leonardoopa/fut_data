@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields
+from dataclasses import astuple, dataclass, fields
 from decimal import Decimal
 
 from app.domain.enums import Position
@@ -15,6 +15,12 @@ class PlayerAttributes:
     dribbling: int
     defending: int
     physical: int
+
+    def highest(self) -> int:
+        return max(astuple(self))
+
+    def total(self) -> int:
+        return sum(astuple(self))
 
 
 @dataclass(frozen=True)

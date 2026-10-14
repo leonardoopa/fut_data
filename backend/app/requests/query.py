@@ -1,7 +1,9 @@
 """Tipos dos query params, no formato estrito de "1. Filtros e query params aceitos".
 
 Os tipos aceitam `None` porque todo filtro é opcional: parâmetro ausente usa o padrão,
-e parâmetro presente com valor vazio é recusado pelo próprio validador.
+e parâmetro presente com valor vazio é recusado pelo próprio validador. O padrão de um
+parâmetro fica fora do campo, que usa sempre `None`: o FastAPI envia ao validador o padrão
+de um parâmetro ausente, e estes validadores só aceitam o texto da URL.
 """
 
 import re
@@ -55,6 +57,16 @@ def parse_search(raw: object) -> str:
     return search
 
 
+def single_occurrence(raw: object) -> object:
+    """O FastAPI entrega um query param de tipo sequência como a lista das suas ocorrências.
+
+    Uma lista de valores vem numa única ocorrência, com os valores separados por vírgula.
+    """
+    if isinstance(raw, list) and len(raw) == 1:
+        return raw[0]
+    return raw
+
+
 def choice_list[E: StrEnum](
     enum_type: type[E],
     *,
@@ -66,7 +78,8 @@ def choice_list[E: StrEnum](
     accepted = ", ".join(options)
 
     def parse(raw: object) -> tuple[E, ...]:
-        tokens = raw.split(LIST_SEPARATOR) if isinstance(raw, str) else []
+        text = single_occurrence(raw)
+        tokens = text.split(LIST_SEPARATOR) if isinstance(text, str) else []
         if not tokens or any(token not in options for token in tokens):
             raise InvalidInputError(f"use valores entre {accepted}, separados por vírgula.")
         chosen = tuple(options[token] for token in tokens)
