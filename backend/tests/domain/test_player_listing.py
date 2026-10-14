@@ -5,11 +5,14 @@ import pytest
 
 from app.domain.exceptions import InvalidInputError
 from app.domain.player_listing import (
-    PlayerListCriteria,
+    VALUE_FILTER_MAX,
+    VALUE_FILTER_MIN,
     PlayerSort,
     filter_by_search_and_value,
     sort_players,
-    validate_criteria,
+    validate_age_range,
+    validate_club_filter,
+    validate_value_range,
 )
 
 
@@ -103,9 +106,11 @@ def test_value_filter_uses_the_market_value_and_includes_both_bounds() -> None:
         StubPlayer(3, "Caio Lima", market_value=Decimal("20.00")),
         StubPlayer(4, "Davi Lima", market_value=Decimal("20.01")),
     ]
-    criteria = PlayerListCriteria(min_value=Decimal(10), max_value=Decimal(20))
+    selected = filter_by_search_and_value(
+        players, search=None, min_value=Decimal(10), max_value=Decimal(20)
+    )
 
-    assert names(filter_by_search_and_value(players, criteria)) == ["Bia Lima", "Caio Lima"]
+    assert names(selected) == ["Bia Lima", "Caio Lima"]
 
 
 @pytest.mark.parametrize(
@@ -115,41 +120,43 @@ def test_value_filter_uses_the_market_value_and_includes_both_bounds() -> None:
 def test_search_ignores_case_and_accents(search: str | None, expected: list[str]) -> None:
     players = [StubPlayer(1, "João Silva"), StubPlayer(2, "Meia Lua")]
 
-    assert names(filter_by_search_and_value(players, PlayerListCriteria(search=search))) == expected
+    selected = filter_by_search_and_value(
+        players, search=search, min_value=VALUE_FILTER_MIN, max_value=VALUE_FILTER_MAX
+    )
+
+    assert names(selected) == expected
 
 
-def test_defaults_follow_rn07_and_ranges_go_to_their_extremes() -> None:
-    criteria = PlayerListCriteria()
-
-    assert (criteria.sort, criteria.page, criteria.limit) == ((PlayerSort.NAME,), 1, 10)
-    assert (criteria.min_age, criteria.max_age) == (16, 45)
-    assert (criteria.min_value, criteria.max_value) == (Decimal(0), Decimal(550))
+@pytest.mark.parametrize(("min_age", "max_age"), [(16, 45), (45, 45), (16, 16), (30, 30)])
+def test_age_range_with_min_up_to_max_is_accepted(min_age: int, max_age: int) -> None:
+    validate_age_range(min_age, max_age)
 
 
-@pytest.mark.parametrize(
-    "criteria",
-    [
-        PlayerListCriteria(),
-        PlayerListCriteria(min_age=45),
-        PlayerListCriteria(max_age=16),
-        PlayerListCriteria(min_age=30, max_age=30),
-        PlayerListCriteria(min_value=Decimal(550)),
-        PlayerListCriteria(min_value=Decimal("10.5"), max_value=Decimal("10.5")),
-        PlayerListCriteria(free=False, club_id=1),
-    ],
-)
-def test_consistent_criteria_are_accepted(criteria: PlayerListCriteria) -> None:
-    validate_criteria(criteria)
+def test_age_range_with_min_above_max_is_refused() -> None:
+    with pytest.raises(InvalidInputError, match="min_age"):
+        validate_age_range(31, 30)
 
 
 @pytest.mark.parametrize(
-    ("criteria", "reason"),
-    [
-        (PlayerListCriteria(min_age=31, max_age=30), "min_age"),
-        (PlayerListCriteria(min_value=Decimal("10.01"), max_value=Decimal(10)), "min_value"),
-        (PlayerListCriteria(free=True, club_id=1), "club_id"),
-    ],
+    ("min_value", "max_value"),
+    [(Decimal(0), Decimal(550)), (Decimal(550), Decimal(550)), (Decimal("10.5"), Decimal("10.5"))],
 )
-def test_contradictory_criteria_are_refused(criteria: PlayerListCriteria, reason: str) -> None:
-    with pytest.raises(InvalidInputError, match=reason):
-        validate_criteria(criteria)
+def test_value_range_with_min_up_to_max_is_accepted(min_value: Decimal, max_value: Decimal) -> None:
+    validate_value_range(min_value, max_value)
+
+
+def test_value_range_with_min_above_max_is_refused() -> None:
+    with pytest.raises(InvalidInputError, match="min_value"):
+        validate_value_range(Decimal("10.01"), Decimal(10))
+
+
+@pytest.mark.parametrize(("free", "club_id"), [(None, None), (True, None), (False, 1), (None, 1)])
+def test_club_filter_without_free_true_and_club_id_together_is_accepted(
+    free: bool | None, club_id: int | None
+) -> None:
+    validate_club_filter(free, club_id)
+
+
+def test_free_true_with_club_id_is_refused() -> None:
+    with pytest.raises(InvalidInputError, match="club_id"):
+        validate_club_filter(True, 1)

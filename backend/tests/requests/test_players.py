@@ -6,8 +6,8 @@ from pydantic import BaseModel, ValidationError
 
 from app.domain.attributes import PlayerAttributes
 from app.domain.enums import Condition, Position
-from app.domain.player import PlayerProfile, PlayerRegistration
-from app.domain.player_listing import PlayerListCriteria, PlayerSort
+from app.domain.player_listing import PlayerSort
+from app.dtos.player import PlayerListCriteria, PlayerProfile, PlayerRegistration
 from app.requests.players import (
     PlayerConditionRequest,
     PlayerListQuery,
