@@ -2,14 +2,13 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from app.domain.enums import TransactionType
 from app.dtos.market import PurchaseOrder, TransactionListCriteria
-from app.requests.fields import BrasiliaDateTime, StrictInteger
+from app.requests.fields import BrasiliaDateTime, PositiveId
 from app.requests.query import QueryPositiveInteger, choice_list
 
-PositiveId = Annotated[StrictInteger, Field(ge=1)]
 QueryTransactionTypes = Annotated[tuple[TransactionType, ...] | None, choice_list(TransactionType)]
 
 

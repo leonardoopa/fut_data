@@ -117,13 +117,24 @@ class MarketService:
     def list_transactions(
         self, club_id: int, criteria: TransactionListCriteria
     ) -> TransactionHistory:
-        ensure_club_exists(self._clubs, club_id)
-        if criteria.player_id is not None:
-            ensure_player_found(self._players.get_active(criteria.player_id))
-        transactions = self._transactions.list_of_club(club_id, criteria)
+        transactions = self._filter_transactions(club_id, criteria)
         return TransactionHistory(
             transactions=transactions, summary=summarize_transactions(transactions)
         )
+
+    def export_transactions(
+        self, club_id: int, criteria: TransactionListCriteria
+    ) -> list[MarketTransaction]:
+        """Mesmos filtros, conferências e ordem do histórico (RN18)."""
+        return self._filter_transactions(club_id, criteria)
+
+    def _filter_transactions(
+        self, club_id: int, criteria: TransactionListCriteria
+    ) -> list[MarketTransaction]:
+        ensure_club_exists(self._clubs, club_id)
+        if criteria.player_id is not None:
+            ensure_player_found(self._players.get_active(criteria.player_id))
+        return self._transactions.list_of_club(club_id, criteria)
 
     def _record(
         self, club: Club, player: Player, amounts: TransactionAmounts, moment: datetime
