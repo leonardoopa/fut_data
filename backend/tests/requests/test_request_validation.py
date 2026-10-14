@@ -3,15 +3,16 @@
 from typing import Annotated, Self
 
 import pytest
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field, model_validator
 
+from app.domain.enums import TransactionType
 from app.domain.exceptions import InvalidInputError
 from app.main import create_app
 from app.requests.fields import StrictInteger
 from app.requests.path import ResourceId
-from app.requests.query import QueryPositiveInteger
+from app.requests.query import QueryPositiveInteger, choice_list
 
 UNLUCKY_AMOUNT = 13
 
@@ -24,6 +25,10 @@ class ProbeBody(BaseModel):
         if self.amount == UNLUCKY_AMOUNT:
             raise InvalidInputError("O valor 13 não é aceito.")
         return self
+
+
+class ProbeFilters(BaseModel):
+    types: Annotated[tuple[TransactionType, ...] | None, choice_list(TransactionType)] = None
 
 
 probe_router = APIRouter(prefix="/probe")
@@ -39,6 +44,11 @@ def echo_query(
     min_age: Annotated[QueryPositiveInteger, Field(ge=16, le=45)] = None,
 ) -> dict[str, int | None]:
     return {"min_age": min_age}
+
+
+@probe_router.get("/filters")
+def echo_filters(filters: Annotated[ProbeFilters, Query()]) -> dict[str, list[str] | None]:
+    return {"types": None if filters.types is None else list(filters.types)}
 
 
 @probe_router.get("/items/{item_id}")
@@ -136,6 +146,28 @@ def test_empty_or_malformed_query_params_are_refused_with_400(
 
     assert response.status_code == 400
     assert response.json()["message"].startswith(message)
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"), [("", None), ("?types=VENDA,COMPRA", ["VENDA", "COMPRA"])]
+)
+def test_list_query_param_of_a_query_model_is_read_from_one_occurrence(
+    probe_client: TestClient, query: str, expected: list[str] | None
+) -> None:
+    response = probe_client.get(f"/probe/filters{query}")
+
+    assert response.status_code == 200
+    assert response.json() == {"types": expected}
+
+
+@pytest.mark.parametrize("query", ["?types=", "?types=VENDA&types=COMPRA"])
+def test_empty_or_repeated_list_query_param_is_refused_with_400(
+    probe_client: TestClient, query: str
+) -> None:
+    response = probe_client.get(f"/probe/filters{query}")
+
+    assert response.status_code == 400
+    assert response.json()["message"].startswith("Campo types:")
 
 
 @pytest.mark.parametrize("item_id", ["abc", "0", "-1", "1.5", "01", "2147483648"])

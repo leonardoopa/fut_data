@@ -26,3 +26,9 @@ def test_overall_follows_the_specification_examples(
 @pytest.mark.parametrize("position", list(Position))
 def test_weights_of_each_position_sum_one_hundred(position: Position) -> None:
     assert sum(astuple(POSITION_WEIGHTS[position])) == 100
+
+
+def test_highest_and_total_cover_the_six_attributes() -> None:
+    attributes = PlayerAttributes(70, 68, 82, 79, 55, 64)
+
+    assert (attributes.highest(), attributes.total()) == (82, 418)
