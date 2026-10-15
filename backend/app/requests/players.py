@@ -2,7 +2,7 @@
 
 from typing import Annotated, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, WithJsonSchema, model_validator
 
 from app.domain.attributes import PlayerAttributes
 from app.domain.enums import Condition, Position
@@ -45,7 +45,13 @@ Attribute = Annotated[StrictInteger, Field(ge=ATTRIBUTE_MIN, le=ATTRIBUTE_MAX)]
 Potential = Annotated[StrictInteger, Field(ge=POTENTIAL_MIN, le=POTENTIAL_MAX)]
 
 QueryAge = Annotated[QueryPositiveInteger, Field(ge=AGE_MIN, le=AGE_MAX)]
-QueryMarketValue = Annotated[QueryDecimal, Field(ge=VALUE_FILTER_MIN, le=VALUE_FILTER_MAX)]
+QueryMarketValue = Annotated[
+    QueryDecimal,
+    Field(ge=VALUE_FILTER_MIN, le=VALUE_FILTER_MAX),
+    WithJsonSchema(
+        {"type": "number", "minimum": int(VALUE_FILTER_MIN), "maximum": int(VALUE_FILTER_MAX)}
+    ),
+]
 QueryLimit = Annotated[QueryPositiveInteger, Field(le=MAX_LIMIT)]
 QueryPlayerSort = Annotated[
     tuple[PlayerSort, ...] | None,
