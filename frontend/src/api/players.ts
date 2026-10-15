@@ -6,6 +6,9 @@ import type {
   PlayerListQuery,
   PlayerProfilePayload,
   PlayerRegistrationPayload,
+  Purchase,
+  PurchasePayload,
+  Sale,
 } from './types'
 
 export function listPlayers(query: PlayerListQuery): Promise<Page<Player>> {
@@ -29,4 +32,12 @@ export function changePlayerCondition(
 
 export function deletePlayer(id: number): Promise<void> {
   return httpClient.delete(`/players/${id}`)
+}
+
+export function buyPlayer(id: number, payload: PurchasePayload): Promise<Purchase> {
+  return httpClient.post<Purchase>(`/players/${id}/buy`, payload)
+}
+
+export function sellPlayer(id: number): Promise<Sale> {
+  return httpClient.post<Sale>(`/players/${id}/sell`)
 }
