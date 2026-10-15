@@ -17,7 +17,7 @@ class Environment(BaseSettings):
     mysql_port: int = 3306
     mysql_database: str = "passe"
     mysql_user: str = "passe"
-    mysql_password: str = "passe"
+    mysql_password: str
     cors_origins: str = "http://localhost:5173"
     log_level: LogLevel = "INFO"
 
