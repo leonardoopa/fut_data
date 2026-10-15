@@ -1,8 +1,12 @@
+import os
+from pathlib import Path
+
 import pymysql
+from dotenv import load_dotenv
 
-from config.environment import Environment
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
-environment = Environment()
+load_dotenv(REPOSITORY_ROOT / ".env")
 
 pymysql.install_as_MySQLdb()
 
@@ -11,11 +15,11 @@ INSTALLED_APPS = ["app.apps.LeagueConfig"]
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "HOST": environment.mysql_host,
-        "PORT": environment.mysql_port,
-        "NAME": environment.mysql_database,
-        "USER": environment.mysql_user,
-        "PASSWORD": environment.mysql_password,
+        "HOST": os.getenv("MYSQL_HOST", "localhost"),
+        "PORT": os.getenv("MYSQL_PORT", "3306"),
+        "NAME": os.getenv("MYSQL_DATABASE", "passe"),
+        "USER": os.getenv("MYSQL_USER", "passe"),
+        "PASSWORD": os.getenv("MYSQL_PASSWORD"),
         "OPTIONS": {"charset": "utf8mb4"},
     }
 }
@@ -23,7 +27,11 @@ DATABASES = {
 USE_TZ = True
 TIME_ZONE = "UTC"
 
-CORS_ORIGINS = environment.cors_origin_list
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
 
 LOGGING = {
     "version": 1,
@@ -35,5 +43,5 @@ LOGGING = {
         }
     },
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "standard"}},
-    "root": {"handlers": ["console"], "level": environment.log_level},
+    "root": {"handlers": ["console"], "level": os.getenv("LOG_LEVEL", "INFO")},
 }
