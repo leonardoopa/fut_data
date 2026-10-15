@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Player, PlayerRegistrationPayload } from '../../api/types'
 import { Button } from '../../components/Button'
 import { Modal } from '../../components/Modal'
+import { ResultDialog } from '../../components/ResultDialog'
 import { formatMoney } from '../../format/money'
 import { PlayerCreateForm } from './PlayerCreateForm'
 
@@ -21,31 +22,25 @@ export function PlayerCreateDialog({ isPending, onCreate, onClose }: PlayerCreat
 
   if (createdPlayer) {
     return (
-      <Modal title="Jogador cadastrado" onClose={onClose}>
-        <p>
-          <strong>{createdPlayer.name}</strong> foi cadastrado. Valores calculados pela API:
-        </p>
-        <dl className="summary">
-          <div>
-            <dt>Overall</dt>
-            <dd>{createdPlayer.overall}</dd>
-          </div>
-          <div>
-            <dt>Valor base</dt>
-            <dd>{formatMoney(createdPlayer.base_value)}</dd>
-          </div>
-          <div>
-            <dt>Valor de mercado</dt>
-            <dd>{formatMoney(createdPlayer.market_value)}</dd>
-          </div>
-        </dl>
-        <div className="form-actions">
+      <ResultDialog
+        title="Jogador cadastrado"
+        description={
+          <>
+            <strong>{createdPlayer.name}</strong> foi cadastrado. Valores calculados pela API:
+          </>
+        }
+        items={[
+          { label: 'Overall', value: createdPlayer.overall },
+          { label: 'Valor base', value: formatMoney(createdPlayer.base_value) },
+          { label: 'Valor de mercado', value: formatMoney(createdPlayer.market_value) },
+        ]}
+        secondaryAction={
           <Button variant="secondary" onClick={() => setCreatedPlayer(undefined)}>
             Cadastrar outro
           </Button>
-          <Button onClick={onClose}>Fechar</Button>
-        </div>
-      </Modal>
+        }
+        onClose={onClose}
+      />
     )
   }
 

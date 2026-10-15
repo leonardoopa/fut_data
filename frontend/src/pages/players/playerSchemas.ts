@@ -5,6 +5,8 @@ import {
   optionalInteger,
   optionalOption,
   optionalText,
+  requiredDateTime,
+  requiredId,
   requiredInteger,
   requiredOption,
   requiredText,
@@ -49,6 +51,11 @@ export const playerFiltersSchema = z.object({
   max_age: optionalInteger(16, 45),
   min_value: optionalDecimal(),
   max_value: optionalDecimal(),
+})
+
+export const playerPurchaseSchema = z.object({
+  club_id: requiredId(),
+  loyalty_until: requiredDateTime(),
 })
 
 export type PlayerProfileFormValues = z.input<typeof playerProfileSchema>
