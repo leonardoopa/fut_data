@@ -1,18 +1,14 @@
-import type { Club, Condition, Player } from '../../api/types'
-import { Badge, type BadgeTone } from '../../components/Badge'
+import type { Club, Player } from '../../api/types'
+import { Badge } from '../../components/Badge'
 import { Button } from '../../components/Button'
+import { ConditionBadge } from '../../components/ConditionBadge'
 import type { Column } from '../../components/DataTable'
-import { CONDITION_LABELS, POSITION_LABELS } from '../../format/labels'
+import { POSITION_LABELS } from '../../format/labels'
 import { formatMoney } from '../../format/money'
-
-const CONDITION_TONES: Record<Condition, BadgeTone> = {
-  APTO: 'success',
-  MAL_CONDICIONADO: 'warning',
-  DOENTE: 'danger',
-}
 
 interface PlayerColumnsOptions {
   clubsById: Map<number, Club>
+  onBuy: (player: Player) => void
   onEdit: (player: Player) => void
   onChangeCondition: (player: Player) => void
   onDelete: (player: Player) => void
@@ -28,6 +24,7 @@ function renderClub(clubId: number | null, clubsById: Map<number, Club>) {
 
 export function buildPlayerColumns({
   clubsById,
+  onBuy,
   onEdit,
   onChangeCondition,
   onDelete,
@@ -41,9 +38,7 @@ export function buildPlayerColumns({
     {
       key: 'condition',
       header: 'Condição',
-      render: (player) => (
-        <Badge tone={CONDITION_TONES[player.condition]}>{CONDITION_LABELS[player.condition]}</Badge>
-      ),
+      render: (player) => <ConditionBadge condition={player.condition} />,
     },
     {
       key: 'base_value',
@@ -67,6 +62,11 @@ export function buildPlayerColumns({
       header: 'Ações',
       render: (player) => (
         <div className="row-actions">
+          {player.club_id === null && (
+            <Button size="sm" aria-label={`Comprar ${player.name}`} onClick={() => onBuy(player)}>
+              Comprar
+            </Button>
+          )}
           <Button
             variant="secondary"
             size="sm"

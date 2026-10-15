@@ -1,4 +1,10 @@
-import { changePlayerCondition, createPlayer, deletePlayer, updatePlayer } from '../api/players'
+import {
+  buyPlayer,
+  changePlayerCondition,
+  createPlayer,
+  deletePlayer,
+  updatePlayer,
+} from '../api/players'
 import type { Player } from '../api/types'
 import { CONDITION_LABELS } from '../format/labels'
 import { useAction } from './useAction'
@@ -31,6 +37,10 @@ export function usePlayerActions({ onSaved, onRemoved }: PlayerActionsOptions) {
     successMessage: (player) => `Jogador "${player.name}" excluído.`,
     onSuccess: onRemoved,
   })
+  const buy = useAction(buyPlayer, {
+    successMessage: (purchase) => `Compra de "${purchase.player_name}" concluída.`,
+    onSuccess: onSaved,
+  })
 
-  return { create, update, changeCondition, remove }
+  return { create, update, changeCondition, remove, buy }
 }

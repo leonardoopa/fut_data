@@ -1,6 +1,8 @@
 import { z } from 'zod'
+import { isLocalDateTime, toBrasiliaDateTime } from '../format/dateTime'
 
 const REQUIRED_MESSAGE = 'Campo obrigatório.'
+const SELECT_MESSAGE = 'Selecione uma opção.'
 const INTEGER_PATTERN = /^-?\d+$/
 const DECIMAL_PATTERN = /^\d+([.,]\d{1,2})?$/
 
@@ -26,6 +28,28 @@ export function requiredText(min: number, max: number) {
       (value) => value === '' || (value.length >= min && value.length <= max),
       `Use de ${min} a ${max} caracteres.`,
     )
+}
+
+export function requiredLetters(length: number) {
+  const pattern = new RegExp(`^[A-Za-z]{${length}}$`)
+  return z
+    .string()
+    .trim()
+    .min(1, REQUIRED_MESSAGE)
+    .refine((value) => value === '' || pattern.test(value), `Use ${length} letras de A a Z.`)
+    .transform((value) => value.toUpperCase())
+}
+
+export function requiredDateTime() {
+  return z
+    .string()
+    .min(1, REQUIRED_MESSAGE)
+    .refine((value) => value === '' || isLocalDateTime(value), 'Informe a data e a hora.')
+    .transform(toBrasiliaDateTime)
+}
+
+export function requiredId() {
+  return z.string().min(1, SELECT_MESSAGE).transform(Number)
 }
 
 export function optionalText(min: number, max: number) {
@@ -76,7 +100,7 @@ export function optionalDecimal() {
 export function requiredOption<const Options extends readonly [string, ...string[]]>(
   options: Options,
 ) {
-  return z.string().pipe(z.enum(options, { error: 'Selecione uma opção.' }))
+  return z.string().pipe(z.enum(options, { error: SELECT_MESSAGE }))
 }
 
 export function optionalOption<const Options extends readonly [string, ...string[]]>(

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDateTime, toBrasiliaDateTime } from './dateTime'
+import { formatDateTime, isLocalDateTime, toBrasiliaDateTime } from './dateTime'
 
 describe('formatDateTime', () => {
   it('shows an UTC timestamp in Brasília time', () => {
@@ -8,6 +8,14 @@ describe('formatDateTime', () => {
 
   it('keeps a timestamp already sent with the Brasília offset', () => {
     expect(formatDateTime('2027-01-01T00:05:00-03:00')).toMatch(/^01\/01\/2027,? 00:05$/)
+  })
+})
+
+describe('isLocalDateTime', () => {
+  it('accepts a datetime-local value and rejects anything else', () => {
+    expect(isLocalDateTime('2027-03-10T18:45')).toBe(true)
+    expect(isLocalDateTime('2027-03-10')).toBe(false)
+    expect(isLocalDateTime('2027-03-10T18:45-03:00')).toBe(false)
   })
 })
 

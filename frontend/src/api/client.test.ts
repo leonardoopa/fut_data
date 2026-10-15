@@ -52,9 +52,54 @@ describe('httpClient', () => {
     await expect(request).rejects.toMatchObject({ status: 404, message: 'Jogador não encontrado.' })
   })
 
-  it('returns nothing for 204 answers', async () => {
+  it('returns nothing for answers without a body', async () => {
     mockFetch(new Response(null, { status: 204 }))
     await expect(httpClient.delete('/players/1')).resolves.toBeUndefined()
+    mockFetch(new Response('', { status: 200 }))
+    await expect(httpClient.post('/players/1/sell')).resolves.toBeUndefined()
+  })
+
+  it('sends a POST without body when there is nothing to send', async () => {
+    const fetchMock = mockFetch(Response.json({ id: 3 }))
+    await httpClient.post('/players/1/sell')
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/players\/1\/sell$/),
+      expect.objectContaining({ method: 'POST', body: undefined, headers: undefined }),
+    )
+  })
+
+  it('downloads a CSV answer as a file named by the API', async () => {
+    const csv = 'data_hora;tipo\n2026-10-14T16:22:59-03:00;VENDA\n'
+    const fetchMock = mockFetch(
+      new Response(csv, {
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="transacoes-clube-1.csv"',
+        },
+      }),
+    )
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:csv')
+    Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    const fileName = await httpClient.download(
+      '/clubs/1/transactions/export',
+      { type: 'VENDA' },
+      'fallback.csv',
+    )
+
+    expect(fileName).toBe('transacoes-clube-1.csv')
+    expect(fetchMock.mock.lastCall?.[0]).toMatch(/\/clubs\/1\/transactions\/export\?type=VENDA$/)
+    await expect(createObjectURL.mock.lastCall?.[0].text()).resolves.toBe(csv)
+    expect(click.mock.contexts[0]).toMatchObject({ download: fileName, href: 'blob:csv' })
+    click.mockRestore()
+  })
+
+  it('shows the JSON message when the download is refused', async () => {
+    mockFetch(Response.json({ message: 'Jogador não encontrado.' }, { status: 404 }))
+    await expect(
+      httpClient.download('/clubs/1/transactions/export', { player_id: 9 }, 'fallback.csv'),
+    ).rejects.toMatchObject({ status: 404, message: 'Jogador não encontrado.' })
   })
 
   it('explains when the API cannot be reached', async () => {

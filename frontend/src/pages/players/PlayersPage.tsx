@@ -13,9 +13,11 @@ import { PlayerConditionDialog } from './PlayerConditionDialog'
 import { PlayerCreateDialog } from './PlayerCreateDialog'
 import { PlayerEditDialog } from './PlayerEditDialog'
 import { PlayerFiltersForm } from './PlayerFiltersForm'
+import { PlayerPurchaseDialog } from './PlayerPurchaseDialog'
 import { buildPlayerColumns } from './playerColumns'
 
-type PlayerDialog = { kind: 'create' } | { kind: 'edit' | 'condition' | 'delete'; player: Player }
+type PlayerDialog =
+  { kind: 'create' } | { kind: 'buy' | 'edit' | 'condition' | 'delete'; player: Player }
 
 const PLAYER_COUNT_LABEL = { one: 'jogador encontrado', other: 'jogadores encontrados' }
 
@@ -35,6 +37,7 @@ export function PlayersPage() {
   )
   const columns = buildPlayerColumns({
     clubsById,
+    onBuy: (player) => setDialog({ kind: 'buy', player }),
     onEdit: (player) => setDialog({ kind: 'edit', player }),
     onChangeCondition: (player) => setDialog({ kind: 'condition', player }),
     onDelete: (player) => setDialog({ kind: 'delete', player }),
@@ -62,6 +65,18 @@ export function PlayersPage() {
       )
     }
     const { player } = dialog
+    if (dialog.kind === 'buy') {
+      return (
+        <PlayerPurchaseDialog
+          player={player}
+          clubs={clubs.data}
+          clubsError={clubs.error}
+          isPending={actions.buy.isPending}
+          onBuy={(payload) => actions.buy.run(player.id, payload)}
+          onClose={closeDialog}
+        />
+      )
+    }
     if (dialog.kind === 'edit') {
       return (
         <PlayerEditDialog
