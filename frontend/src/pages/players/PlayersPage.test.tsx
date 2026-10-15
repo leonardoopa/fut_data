@@ -4,13 +4,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
 import { listClubs } from '../../api/clubs'
 import {
+  buyPlayer,
   changePlayerCondition,
   createPlayer,
   deletePlayer,
   listPlayers,
   updatePlayer,
 } from '../../api/players'
-import { CLUBS, makePage, makePlayer } from '../../test/fixtures'
+import { CLUBS, makePage, makePlayer, makePurchase } from '../../test/fixtures'
+import { rowOf, summaryValue } from '../../test/queries'
 import { renderWithProviders } from '../../test/render'
 import { PlayersPage } from './PlayersPage'
 
@@ -35,12 +37,6 @@ async function renderPage() {
   renderWithProviders(<PlayersPage />)
   await screen.findByRole('cell', { name: FREE_PLAYER.name })
   return user
-}
-
-function rowOf(name: string) {
-  const row = screen.getByRole('cell', { name }).closest('tr')
-  if (!row) throw new Error(`Linha de ${name} não encontrada.`)
-  return within(row)
 }
 
 beforeEach(() => {
@@ -163,8 +159,9 @@ describe('PlayersPage', () => {
     const callsBefore = vi.mocked(listPlayers).mock.calls.length
     await user.click(dialog.getByRole('button', { name: 'Cadastrar' }))
 
-    expect(await dialog.findByText('81')).toBeInTheDocument()
-    expect(dialog.getByText('52,25')).toBeInTheDocument()
+    const result = within(await screen.findByRole('dialog', { name: 'Jogador cadastrado' }))
+    expect(result.getByText('81')).toBeInTheDocument()
+    expect(result.getByText('52,25')).toBeInTheDocument()
     expect(createPlayer).toHaveBeenCalledOnce()
     expect(screen.getByRole('status')).toHaveTextContent('Jogador "Novo Craque" cadastrado.')
     await waitFor(() =>
@@ -240,5 +237,44 @@ describe('PlayersPage', () => {
       expect(screen.queryByRole('cell', { name: FREE_PLAYER.name })).not.toBeInTheDocument(),
     )
     expect(screen.getByText('11 jogadores encontrados')).toBeInTheDocument()
+  })
+
+  it('buys a free player: validates, sends the Brasília offset and shows the result', async () => {
+    vi.mocked(buyPlayer).mockResolvedValue(makePurchase())
+    const user = await renderPage()
+    expect(rowOf(CLUB_PLAYER.name).queryByRole('button', { name: /Comprar/ })).toBeNull()
+
+    await user.click(rowOf(FREE_PLAYER.name).getByRole('button', { name: /Comprar/ }))
+    const dialog = within(screen.getByRole('dialog', { name: `Comprar ${FREE_PLAYER.name}` }))
+    await user.click(dialog.getByRole('button', { name: 'Confirmar compra' }))
+
+    expect(dialog.getByLabelText('Clube comprador')).toHaveAccessibleDescription(
+      'Selecione uma opção.',
+    )
+    expect(dialog.getByLabelText('Fim da fidelidade')).toHaveAccessibleDescription(
+      'Data e hora no horário de Brasília. Campo obrigatório.',
+    )
+    expect(buyPlayer).not.toHaveBeenCalled()
+
+    await user.selectOptions(dialog.getByLabelText('Clube comprador'), '2')
+    await user.type(dialog.getByLabelText('Fim da fidelidade'), '2027-01-10T10:00')
+    const callsBefore = vi.mocked(listPlayers).mock.calls.length
+    await user.dblClick(dialog.getByRole('button', { name: 'Confirmar compra' }))
+
+    expect(buyPlayer).toHaveBeenCalledOnce()
+    expect(buyPlayer).toHaveBeenCalledWith(FREE_PLAYER.id, {
+      club_id: 2,
+      loyalty_until: '2027-01-10T10:00-03:00',
+    })
+    const result = await screen.findByRole('dialog', { name: 'Compra concluída' })
+    expect(summaryValue('Valor', result)).toBe('37,00')
+    expect(summaryValue('Taxa', result)).toBe('1,85')
+    expect(summaryValue('Custo total', result)).toBe('38,85')
+    expect(summaryValue('Fim da fidelidade', result)).toMatch(/^10\/01\/2027,? 10:00$/)
+    expect(summaryValue('Novo caixa', result)).toBe('261,15')
+    expect(screen.getByText('Compra de "Meia Lua" concluída.')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(vi.mocked(listPlayers).mock.calls.length).toBeGreaterThan(callsBefore),
+    )
   })
 })
