@@ -1,5 +1,5 @@
 import type { Key, ReactNode } from 'react'
-import { Button } from './Button'
+import { ErrorDetails, LoadingIndicator } from './QueryStatus'
 
 export interface Column<Row> {
   key: string
@@ -14,7 +14,7 @@ interface DataTableProps<Row> {
   rows: Row[] | undefined
   getRowKey: (row: Row) => Key
   isLoading: boolean
-  error: string | undefined
+  error?: string
   emptyMessage: string
   onRetry?: () => void
 }
@@ -41,24 +41,11 @@ export function DataTable<Row>({
 
   function renderBody() {
     if (isLoading) {
-      return renderState(
-        <>
-          <span className="spinner" aria-hidden="true" /> Carregando…
-        </>,
-        'data-table__state--loading',
-        'status',
-      )
+      return renderState(<LoadingIndicator />, 'data-table__state--loading', 'status')
     }
     if (error) {
       return renderState(
-        <>
-          <p>{error}</p>
-          {onRetry && (
-            <Button variant="secondary" size="sm" onClick={onRetry}>
-              Tentar novamente
-            </Button>
-          )}
-        </>,
+        <ErrorDetails error={error} onRetry={onRetry} />,
         'data-table__state--error',
         'alert',
       )

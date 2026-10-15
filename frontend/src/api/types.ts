@@ -46,6 +46,14 @@ export interface Player {
   club_id: number | null
 }
 
+export const CLUB_SORTS = ['name', 'net_worth_desc', 'net_worth_asc'] as const
+export type ClubSort = (typeof CLUB_SORTS)[number]
+
+export const TRANSACTION_TYPES = ['COMPRA', 'VENDA'] as const
+export type TransactionType = (typeof TRANSACTION_TYPES)[number]
+
+export type ContractStatus = 'ATIVO' | 'ENCERRADO' | 'RESCINDIDO'
+
 export interface Club {
   id: number
   name: string
@@ -53,6 +61,80 @@ export interface Club {
   cash: number
   squad_value: number
   net_worth: number
+}
+
+export interface ContractTerms {
+  purchase_value: number
+  loyalty_until: string
+  remaining_days: number
+  penalty_rate: number
+}
+
+export interface SquadPlayer extends Player {
+  contract: ContractTerms
+}
+
+export interface ClubDetails extends Club {
+  players: SquadPlayer[]
+}
+
+export interface ClubRegistrationPayload {
+  name: string
+  acronym: string
+}
+
+export interface Transaction {
+  id: number
+  club_id: number
+  player_id: number
+  player_name: string
+  type: TransactionType
+  value: number
+  fee: number
+  penalty: number
+  profit: number | null
+  cash_change: number
+  created_at: string
+}
+
+export interface TransactionSummary {
+  total_spent: number
+  total_received: number
+  total_fees: number
+  total_penalties: number
+  total_profit: number
+}
+
+export interface TransactionHistory {
+  data: Transaction[]
+  summary: TransactionSummary
+}
+
+export interface TransactionFilters {
+  types: TransactionType[]
+  player_id?: number
+}
+
+export interface PurchasePayload {
+  club_id: number
+  loyalty_until: string
+}
+
+export interface Purchase extends Transaction {
+  contract: {
+    purchase_value: number
+    loyalty_until: string
+    status: ContractStatus
+  }
+  club_cash: number
+}
+
+export interface Sale extends Transaction {
+  purchase_value: number
+  remaining_days: number
+  penalty_rate: number
+  contract_status: ContractStatus
+  club_cash: number
 }
 
 export type PlayerFilters = {

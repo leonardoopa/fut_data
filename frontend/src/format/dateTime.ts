@@ -15,6 +15,10 @@ export function formatDateTime(isoDateTime: string): string {
   return dateTimeFormatter.format(new Date(isoDateTime))
 }
 
+export function isLocalDateTime(value: string): boolean {
+  return LOCAL_DATE_TIME_PATTERN.test(value)
+}
+
 export function toBrasiliaDateTime(localDateTime: string): string {
   const match = LOCAL_DATE_TIME_PATTERN.exec(localDateTime)
   if (!match) {
