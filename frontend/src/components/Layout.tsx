@@ -3,6 +3,8 @@ import { NavLink, Outlet } from 'react-router-dom'
 const NAVIGATION = [
   { to: '/players', label: 'Jogadores' },
   { to: '/clubs', label: 'Clubes' },
+  { to: '/matches', label: 'Partidas' },
+  { to: '/standings', label: 'Classificação' },
 ]
 
 export function Layout() {
