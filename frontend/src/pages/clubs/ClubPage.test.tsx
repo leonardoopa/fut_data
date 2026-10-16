@@ -2,11 +2,17 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
-import { exportClubTransactions, getClub, listClubTransactions } from '../../api/clubs'
+import {
+  exportClubTransactions,
+  getClub,
+  getClubLineup,
+  listClubTransactions,
+} from '../../api/clubs'
 import { sellPlayer } from '../../api/players'
 import {
   makeClubDetails,
   makeHistory,
+  makeLineup,
   makeSale,
   makeSquadPlayer,
   makeTransaction,
@@ -53,6 +59,7 @@ function lastHistoryQuery() {
 beforeEach(() => {
   vi.mocked(getClub).mockResolvedValue(makeClubDetails([GOALKEEPER, MIDFIELDER]))
   vi.mocked(listClubTransactions).mockResolvedValue(makeHistory([SALE, PURCHASE]))
+  vi.mocked(getClubLineup).mockResolvedValue(makeLineup())
 })
 
 describe('ClubPage squad', () => {
