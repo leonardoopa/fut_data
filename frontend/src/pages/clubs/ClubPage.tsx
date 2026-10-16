@@ -3,9 +3,11 @@ import { QueryStatus } from '../../components/QueryStatus'
 import { SummaryList } from '../../components/SummaryList'
 import { Tabs } from '../../components/Tabs'
 import { formatMoney } from '../../format/money'
+import { useClubLineup } from '../../hooks/useClubLineup'
 import { useClubDetails } from '../../hooks/useClubs'
 import { useClubTransactions } from '../../hooks/useClubTransactions'
 import { useSquadActions } from '../../hooks/useSquadActions'
+import { ClubLineupPanel } from './ClubLineupPanel'
 import { ClubSquadPanel } from './ClubSquadPanel'
 import { ClubTransactionsPanel } from './ClubTransactionsPanel'
 
@@ -13,10 +15,12 @@ export function ClubPage() {
   const clubId = Number(useParams().clubId)
   const club = useClubDetails(clubId)
   const history = useClubTransactions(clubId)
+  const lineup = useClubLineup(clubId)
   const actions = useSquadActions({
     onSold: () => {
       club.reload()
       history.reload()
+      lineup.reload()
     },
   })
 
@@ -46,6 +50,17 @@ export function ClubPage() {
                   isLoading={club.isLoading}
                   isSelling={actions.sell.isPending}
                   onSell={(player) => actions.sell.run(player.id)}
+                />
+              ),
+            },
+            {
+              id: 'lineup',
+              label: 'Escalação',
+              content: (
+                <ClubLineupPanel
+                  lineup={lineup}
+                  squad={club.data.players}
+                  isSquadLoading={club.isLoading}
                 />
               ),
             },
