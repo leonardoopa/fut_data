@@ -1,4 +1,13 @@
-import type { ClubSort, Condition, PlayerSort, Position, TransactionType } from '../api/types'
+import type {
+  ClubSort,
+  Condition,
+  DuelAttribute,
+  MatchResult,
+  PlayerSort,
+  Position,
+  TransactionType,
+} from '../api/types'
+import type { Sector } from '../config/formations'
 
 export const POSITION_LABELS: Record<Position, string> = {
   GOL: 'Goleiro',
@@ -32,4 +41,24 @@ export const CLUB_SORT_LABELS: Record<ClubSort, string> = {
 export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
   COMPRA: 'Compra',
   VENDA: 'Venda',
+}
+
+export const SECTOR_LABELS: Record<Sector, string> = {
+  goalkeeper: 'Goleiro',
+  defense: 'Defesa',
+  midfield: 'Meio-campo',
+  attack: 'Ataque',
+}
+
+export const MATCH_RESULT_LABELS: Record<MatchResult, string> = {
+  MANDANTE: 'Vitória do mandante',
+  VISITANTE: 'Vitória do visitante',
+  EMPATE: 'Empate',
+}
+
+export const DUEL_ATTRIBUTE_LABELS: Record<DuelAttribute, string> = {
+  shooting: 'Finalização',
+  passing: 'Passe',
+  dribbling: 'Drible',
+  defending: 'Defesa',
 }

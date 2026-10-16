@@ -4,6 +4,8 @@ import type {
   ClubDetails,
   ClubRegistrationPayload,
   ClubSort,
+  Lineup,
+  LineupPayload,
   TransactionFilters,
   TransactionHistory,
 } from './types'
@@ -22,6 +24,14 @@ export function createClub(payload: ClubRegistrationPayload): Promise<Club> {
 
 export function getClub(id: number): Promise<ClubDetails> {
   return httpClient.get<ClubDetails>(`/clubs/${id}`)
+}
+
+export function getClubLineup(clubId: number): Promise<Lineup> {
+  return httpClient.get<Lineup>(`/clubs/${clubId}/lineup`)
+}
+
+export function saveClubLineup(clubId: number, payload: LineupPayload): Promise<Lineup> {
+  return httpClient.put<Lineup>(`/clubs/${clubId}/lineup`, payload)
 }
 
 export function listClubTransactions(
