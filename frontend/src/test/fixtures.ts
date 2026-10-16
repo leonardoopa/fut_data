@@ -1,11 +1,16 @@
 import type {
   Club,
   ClubDetails,
+  Duel,
+  Lineup,
+  Match,
+  MatchDetails,
   Page,
   Player,
   Purchase,
   Sale,
   SquadPlayer,
+  Standing,
   Transaction,
   TransactionHistory,
 } from '../api/types'
@@ -124,6 +129,78 @@ export function makeSale(overrides: Partial<Sale> = {}): Sale {
     penalty_rate: 10,
     contract_status: 'RESCINDIDO',
     club_cash: 317.7,
+    ...overrides,
+  }
+}
+
+export function makeLineup(overrides: Partial<Lineup> = {}): Lineup {
+  return { club_id: 2, formation: null, complete: false, players: [], ...overrides }
+}
+
+export function makeMatch(overrides: Partial<Match> = {}): Match {
+  return {
+    id: 1,
+    played_at: '2026-10-14T19:36:21-03:00',
+    home: { club_id: 2, club_name: 'Alfa FC', formation: '2-1-1', goals: 2 },
+    away: { club_id: 3, club_name: 'Beta FC', formation: '3-1', goals: 1 },
+    result: 'MANDANTE',
+    ...overrides,
+  }
+}
+
+function makeDuel(order: number, attackingClubId: number, goal: boolean): Duel {
+  const isHomeAttack = attackingClubId === 2
+  return {
+    order,
+    attacking_club_id: attackingClubId,
+    attacker: {
+      player_id: order * 10,
+      player_name: `Atacante ${order}`,
+      position: 'ATA',
+      condition: order === 2 ? 'MAL_CONDICIONADO' : 'APTO',
+      attribute: 'shooting',
+      value: 60 + order,
+    },
+    defender: {
+      player_id: order * 10 + 1,
+      player_name: `Defensor ${order}`,
+      position: isHomeAttack ? 'ZAG' : 'LAT',
+      condition: 'APTO',
+      attribute: 'defending',
+      value: 50 + order,
+    },
+    goal,
+  }
+}
+
+export function makeMatchDetails(overrides: Partial<MatchDetails> = {}): MatchDetails {
+  return {
+    ...makeMatch(),
+    duels: [
+      makeDuel(1, 2, true),
+      makeDuel(2, 2, false),
+      makeDuel(3, 2, true),
+      makeDuel(4, 3, true),
+      makeDuel(5, 3, false),
+      makeDuel(6, 3, false),
+    ],
+    ...overrides,
+  }
+}
+
+export function makeStanding(overrides: Partial<Standing> = {}): Standing {
+  return {
+    position: 1,
+    club_id: 2,
+    club_name: 'Alfa FC',
+    played: 1,
+    wins: 1,
+    draws: 0,
+    losses: 0,
+    goals_for: 2,
+    goals_against: 1,
+    goal_difference: 1,
+    points: 3,
     ...overrides,
   }
 }
