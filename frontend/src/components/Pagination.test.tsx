@@ -3,63 +3,51 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { Pagination } from './Pagination'
 
-const LABEL = { one: 'jogador encontrado', other: 'jogadores encontrados' }
+const LABEL = { one: 'jogador', other: 'jogadores' }
+
+function renderPagination(props: Partial<Parameters<typeof Pagination>[0]> = {}) {
+  const onPageChange = vi.fn()
+  render(
+    <Pagination
+      page={2}
+      pageSize={10}
+      pageItems={10}
+      totalPages={3}
+      totalItems={25}
+      itemLabel={LABEL}
+      onPageChange={onPageChange}
+      {...props}
+    />,
+  )
+  return onPageChange
+}
 
 describe('Pagination', () => {
-  it('shows the total found and the current page', () => {
-    render(
-      <Pagination
-        page={2}
-        totalPages={3}
-        totalItems={25}
-        itemLabel={LABEL}
-        onPageChange={vi.fn()}
-      />,
-    )
-    expect(screen.getByText('25 jogadores encontrados')).toBeInTheDocument()
-    expect(screen.getByText('Página 2 de 3')).toBeInTheDocument()
+  it('shows the range shown and the total found', () => {
+    renderPagination()
+    expect(screen.getByText('Mostrando 11–20 de 25 jogadores')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Página 2' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('uses the singular label for one item', () => {
-    render(
-      <Pagination
-        page={1}
-        totalPages={1}
-        totalItems={1}
-        itemLabel={LABEL}
-        onPageChange={vi.fn()}
-      />,
-    )
-    expect(screen.getByText('1 jogador encontrado')).toBeInTheDocument()
+    renderPagination({ page: 1, pageItems: 1, totalPages: 1, totalItems: 1 })
+    expect(screen.getByText('Mostrando 1–1 de 1 jogador')).toBeInTheDocument()
   })
 
-  it('moves to the previous and next pages', async () => {
-    const onPageChange = vi.fn()
-    render(
-      <Pagination
-        page={2}
-        totalPages={3}
-        totalItems={25}
-        itemLabel={LABEL}
-        onPageChange={onPageChange}
-      />,
-    )
+  it('moves to the previous, next and chosen pages', async () => {
+    const onPageChange = renderPagination()
     await userEvent.click(screen.getByRole('button', { name: 'Próxima' }))
     await userEvent.click(screen.getByRole('button', { name: 'Anterior' }))
-    expect(onPageChange.mock.calls).toEqual([[3], [1]])
+    await userEvent.click(screen.getByRole('button', { name: 'Página 3' }))
+    expect(onPageChange.mock.calls).toEqual([[3], [1], [3]])
   })
 
-  it('disables the buttons at the edges', () => {
-    render(
-      <Pagination
-        page={1}
-        totalPages={1}
-        totalItems={4}
-        itemLabel={LABEL}
-        onPageChange={vi.fn()}
-      />,
-    )
+  it('collapses distant pages and disables the buttons at the edges', () => {
+    renderPagination({ page: 1, totalPages: 9, totalItems: 85 })
+    expect(
+      screen.getAllByRole('button', { name: /^Página/ }).map((page) => page.textContent),
+    ).toEqual(['1', '2', '9'])
     expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeEnabled()
   })
 })
