@@ -2,8 +2,13 @@ import { createContext, useContext } from 'react'
 
 export type NotificationType = 'success' | 'error'
 
+export interface NotificationContent {
+  title: string
+  message: string
+}
+
 export interface Notifications {
-  notify: (type: NotificationType, message: string) => void
+  notify: (type: NotificationType, content: NotificationContent) => void
 }
 
 export const NotificationsContext = createContext<Notifications | null>(null)

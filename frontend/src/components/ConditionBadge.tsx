@@ -9,5 +9,9 @@ const CONDITION_TONES: Record<Condition, BadgeTone> = {
 }
 
 export function ConditionBadge({ condition }: { condition: Condition }) {
-  return <Badge tone={CONDITION_TONES[condition]}>{CONDITION_LABELS[condition]}</Badge>
+  return (
+    <Badge tone={CONDITION_TONES[condition]} dot>
+      {CONDITION_LABELS[condition]}
+    </Badge>
+  )
 }

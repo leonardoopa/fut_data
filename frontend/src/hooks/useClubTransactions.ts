@@ -1,15 +1,24 @@
 import { useCallback, useMemo, useState } from 'react'
 import { exportClubTransactions, listClubTransactions } from '../api/clubs'
-import type { Transaction, TransactionFilters } from '../api/types'
+import {
+  TRANSACTION_TYPES,
+  type Transaction,
+  type TransactionFilters,
+  type TransactionHistory,
+} from '../api/types'
 import { useAction } from './useAction'
 import { useApiQuery } from './useApiQuery'
 
-export interface HistoryPlayer {
+interface HistoryPlayer {
   id: number
   name: string
 }
 
-export const NO_TRANSACTION_FILTERS: TransactionFilters = { types: [] }
+const DEFAULT_TRANSACTION_FILTERS: TransactionFilters = { types: [...TRANSACTION_TYPES] }
+
+function isDefaultTransactionFilters(filters: TransactionFilters): boolean {
+  return filters.player_id === undefined && filters.types.length === TRANSACTION_TYPES.length
+}
 
 function listHistoryPlayers(transactions: Transaction[]): HistoryPlayer[] {
   const namesById = new Map(
@@ -21,34 +30,36 @@ function listHistoryPlayers(transactions: Transaction[]): HistoryPlayer[] {
 }
 
 export function useClubTransactions(clubId: number) {
-  const [filters, setFilters] = useState<TransactionFilters>(NO_TRANSACTION_FILTERS)
+  const [filters, setFilters] = useState<TransactionFilters>(DEFAULT_TRANSACTION_FILTERS)
+  const fetchHistory = useCallback(() => listClubTransactions(clubId, filters), [clubId, filters])
+  const history = useApiQuery(fetchHistory)
+  const isDefault = isDefaultTransactionFilters(filters)
 
-  const fetchFiltered = useCallback(() => listClubTransactions(clubId, filters), [clubId, filters])
-  const fetchComplete = useCallback(
-    () => listClubTransactions(clubId, NO_TRANSACTION_FILTERS),
-    [clubId],
-  )
-  const filtered = useApiQuery(fetchFiltered)
-  const complete = useApiQuery(fetchComplete)
+  const [completeHistory, setCompleteHistory] = useState<TransactionHistory>()
+  const isCompleteAnswer = isDefault && !history.isLoading && history.data !== undefined
+  if (isCompleteAnswer && history.data !== completeHistory) {
+    setCompleteHistory(history.data)
+  }
 
-  const players = useMemo(() => listHistoryPlayers(complete.data?.data ?? []), [complete.data])
+  const players = useMemo(() => listHistoryPlayers(completeHistory?.data ?? []), [completeHistory])
   const exportCsv = useAction(() => exportClubTransactions(clubId, filters), {
-    successMessage: (fileName) => `Arquivo "${fileName}" baixado.`,
+    success: (fileName) => ({
+      title: 'CSV baixado',
+      message: `${fileName}, com os filtros aplicados.`,
+    }),
+    errorToastTitle: 'Não foi possível exportar o CSV',
+    changesLeague: false,
   })
-
-  const { reload: reloadFiltered } = filtered
-  const { reload: reloadComplete } = complete
-  const reload = useCallback(() => {
-    reloadFiltered()
-    reloadComplete()
-  }, [reloadFiltered, reloadComplete])
+  const resetFilters = useCallback(() => setFilters(DEFAULT_TRANSACTION_FILTERS), [])
 
   return {
-    ...filtered,
-    reload,
+    ...history,
     filters,
+    isDefaultFilters: isDefault,
     applyFilters: setFilters,
+    resetFilters,
     players,
+    transactionCount: completeHistory?.data.length,
     exportCsv,
   }
 }

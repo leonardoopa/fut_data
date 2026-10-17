@@ -1,22 +1,26 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
+import { Icon, type IconName } from './Icon'
 
-export interface Tab {
-  id: string
+export interface Tab<Id extends string> {
+  id: Id
   label: string
+  icon: IconName
+  count?: number
   content: ReactNode
 }
 
-interface TabsProps {
+interface TabsProps<Id extends string> {
   label: string
-  tabs: Tab[]
+  tabs: Tab<Id>[]
+  activeId: Id
+  onChange: (id: Id) => void
 }
 
-export function Tabs({ label, tabs }: TabsProps) {
+export function Tabs<Id extends string>({ label, tabs, activeId, onChange }: TabsProps<Id>) {
   const baseId = useId()
-  const [activeId, setActiveId] = useState(tabs[0].id)
   const activeTab = tabs.find((tab) => tab.id === activeId) ?? tabs[0]
-  const tabId = (tab: Tab) => `${baseId}-${tab.id}-tab`
-  const panelId = (tab: Tab) => `${baseId}-${tab.id}-panel`
+  const tabId = (tab: Tab<Id>) => `${baseId}-${tab.id}-tab`
+  const panelId = (tab: Tab<Id>) => `${baseId}-${tab.id}-panel`
 
   return (
     <div className="tabs">
@@ -30,9 +34,16 @@ export function Tabs({ label, tabs }: TabsProps) {
             className="tabs__tab"
             aria-selected={tab.id === activeTab.id}
             aria-controls={panelId(tab)}
-            onClick={() => setActiveId(tab.id)}
+            onClick={() => onChange(tab.id)}
           >
+            <Icon name={tab.icon} />
             {tab.label}
+            {tab.count !== undefined && (
+              <>
+                {' '}
+                <span className="tabs__count">{tab.count}</span>
+              </>
+            )}
           </button>
         ))}
       </div>

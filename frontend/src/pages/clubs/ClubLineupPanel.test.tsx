@@ -5,12 +5,12 @@ import { ApiError } from '../../api/client'
 import { getClub, getClubLineup, listClubTransactions, saveClubLineup } from '../../api/clubs'
 import type { Lineup } from '../../api/types'
 import { makeClubDetails, makeHistory, makeLineup, makeSquadPlayer } from '../../test/fixtures'
-import { summaryValue } from '../../test/queries'
 import { renderWithProviders } from '../../test/render'
 import { ClubPage } from './ClubPage'
 
 vi.mock('../../api/clubs')
 vi.mock('../../api/players')
+vi.mock('../../api/matches')
 
 const GOALKEEPER = makeSquadPlayer({ id: 7, name: 'Paredão', position: 'GOL' })
 const SICK_GOALKEEPER = makeSquadPlayer({
@@ -51,6 +51,8 @@ const SAVED_LINEUP: Lineup = makeLineup({
   players: [GOALKEEPER, CENTER_BACK, FULL_BACK, MIDFIELDER, STRIKER],
 })
 
+type User = ReturnType<typeof userEvent.setup>
+
 async function openLineup() {
   const user = userEvent.setup()
   renderWithProviders(<ClubPage />, { path: '/clubs/:clubId', url: '/clubs/2' })
@@ -65,12 +67,14 @@ function optionNames(label: string) {
     .map((option) => option.textContent)
 }
 
-function lineupRows() {
-  const table = screen.getByRole('table', { name: 'Titulares' })
-  return within(table)
-    .getAllByRole('row')
-    .slice(1)
-    .map((row) => within(row).getAllByRole('cell')[0].textContent)
+function fieldNames() {
+  return within(screen.getByRole('list', { name: 'Em campo' }))
+    .getAllByRole('listitem')
+    .map((item) => item.textContent)
+}
+
+async function chooseFormation(user: User, formation: string) {
+  await user.click(screen.getByRole('radio', { name: new RegExp(`^${formation}`) }))
 }
 
 beforeEach(() => {
@@ -80,50 +84,58 @@ beforeEach(() => {
 })
 
 describe('ClubPage lineup', () => {
-  it('warns that a club without a complete lineup cannot play', async () => {
+  it('warns that a club without a complete lineup cannot play and draws the saved starters', async () => {
     vi.mocked(getClubLineup).mockResolvedValue(
       makeLineup({ formation: '2-1-1', players: [GOALKEEPER, CENTER_BACK] }),
     )
     await openLineup()
 
     expect(getClubLineup).toHaveBeenCalledWith(2)
-    expect(screen.getByText(/Escalação incompleta: o clube não pode jogar/)).toBeInTheDocument()
-    expect(summaryValue('Formação')).toBe('2-1-1')
-    expect(summaryValue('Situação')).toBe('Incompleta')
-    expect(lineupRows()).toEqual(['Paredão', 'Zagueiro Forte'])
+    expect(
+      screen.getByText('Escalação incompleta: o Alfa FC não pode jogar partidas'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Incompleta')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /^2-1-1/ })).toBeChecked()
+    expect(fieldNames()).toEqual([
+      'PParedãoGOL · 75',
+      'ZFZagueiro ForteZAG · 75',
+      'VagaDefesa',
+      'VagaMeio',
+      'VagaAtaque',
+    ])
   })
 
-  it('shows an empty lineup when the club has none', async () => {
+  it('shows an empty lineup and every player as a reserve when the club has none', async () => {
     await openLineup()
 
-    expect(summaryValue('Formação')).toBe('Não definida')
-    expect(screen.getByText('Nenhum titular escalado.')).toBeInTheDocument()
+    expect(fieldNames()).toEqual(['VagaGoleiro'])
     expect(screen.queryByLabelText('Defesa 1')).not.toBeInTheDocument()
+    expect(screen.getByText('Escolha a formação para ver as vagas de linha.')).toBeInTheDocument()
+    const reserves = within(screen.getByRole('list', { name: 'Reservas' }))
+    expect(reserves.getAllByRole('listitem')).toHaveLength(SQUAD.length)
+    expect(reserves.getAllByText('Doente não pode ser escalado.')).toHaveLength(2)
   })
 
   it('offers only squad players of the slot sector, never sick ones and never twice', async () => {
     const user = await openLineup()
 
-    expect(optionNames('Goleiro')).toEqual(['Selecione…', 'Paredão (Goleiro, Apto)'])
-    await user.selectOptions(screen.getByLabelText('Formação'), '2-1-1')
+    expect(optionNames('Goleiro')).toEqual(['Selecione…', 'Paredão (GOL)'])
+    await chooseFormation(user, '2-1-1')
 
     expect(optionNames('Defesa 1')).toEqual([
       'Selecione…',
-      'Zagueiro Forte (Zagueiro, Apto)',
-      'Lateral Veloz (Lateral, Mal condicionado)',
+      'Zagueiro Forte (ZAG)',
+      'Lateral Veloz (LAT)',
     ])
-    expect(optionNames('Meio-campo 1')).toEqual(['Selecione…', 'Meia Lua (Meio-campista, Apto)'])
+    expect(optionNames('Meio 1')).toEqual(['Selecione…', 'Meia Lua (MEI)'])
     expect(optionNames('Ataque 1')).toEqual([
       'Selecione…',
-      'Artilheiro (Atacante, Apto)',
-      'Centroavante (Atacante, Apto)',
+      'Artilheiro (ATA)',
+      'Centroavante (ATA)',
     ])
 
     await user.selectOptions(screen.getByLabelText('Defesa 1'), String(CENTER_BACK.id))
-    expect(optionNames('Defesa 2')).toEqual([
-      'Selecione…',
-      'Lateral Veloz (Lateral, Mal condicionado)',
-    ])
+    expect(optionNames('Defesa 2')).toEqual(['Selecione…', 'Lateral Veloz (LAT)'])
   })
 
   it('starts from the saved lineup and keeps only the starters that fit a new formation', async () => {
@@ -131,21 +143,21 @@ describe('ClubPage lineup', () => {
     const user = await openLineup()
 
     expect(screen.queryByText(/Escalação incompleta/)).not.toBeInTheDocument()
-    expect(lineupRows()).toEqual([
-      'Paredão',
-      'Zagueiro Forte',
-      'Lateral Veloz',
-      'Meia Lua',
-      'Artilheiro',
-    ])
-    expect(screen.getByLabelText('Formação')).toHaveValue('2-1-1')
-    expect(screen.getByLabelText('Meio-campo 1')).toHaveValue(String(MIDFIELDER.id))
+    expect(screen.getByText('Completa')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /^2-1-1/ })).toBeChecked()
+    expect(screen.getByLabelText('Meio 1')).toHaveValue(String(MIDFIELDER.id))
+    expect(screen.getByText('Lateral Veloz está mal condicionado')).toBeInTheDocument()
+    expect(screen.getByText('Passe 82')).toBeInTheDocument()
 
-    await user.selectOptions(screen.getByLabelText('Formação'), '3-1')
+    await chooseFormation(user, '3-1')
 
     expect(screen.getByLabelText('Defesa 2')).toHaveValue(String(FULL_BACK.id))
     expect(screen.getByLabelText('Defesa 3')).toHaveValue('')
     expect(screen.getByLabelText('Ataque 1')).toHaveValue(String(STRIKER.id))
+
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.getByRole('radio', { name: /^2-1-1/ })).toBeChecked()
+    expect(screen.getByLabelText('Meio 1')).toHaveValue(String(MIDFIELDER.id))
   })
 
   it('requires the formation and the five starters before sending', async () => {
@@ -153,29 +165,29 @@ describe('ClubPage lineup', () => {
 
     await user.click(screen.getByRole('button', { name: 'Salvar escalação' }))
     expect(await screen.findByLabelText('Formação')).toHaveAccessibleDescription(
-      /Selecione uma opção\./,
+      'Selecione uma opção.',
     )
 
-    await user.selectOptions(screen.getByLabelText('Formação'), '1-2-1')
+    await chooseFormation(user, '1-2-1')
     await user.click(screen.getByRole('button', { name: 'Salvar escalação' }))
 
-    for (const label of ['Goleiro', 'Defesa 1', 'Meio-campo 1', 'Meio-campo 2', 'Ataque 1']) {
+    for (const label of ['Goleiro', 'Defesa 1', 'Meio 1', 'Meio 2', 'Ataque 1']) {
       await waitFor(() =>
-        expect(screen.getByLabelText(label)).toHaveAccessibleDescription(/Selecione uma opção\./),
+        expect(screen.getByLabelText(label)).toHaveAccessibleDescription('Selecione uma opção.'),
       )
     }
     expect(saveClubLineup).not.toHaveBeenCalled()
   })
 
-  it('sends the formation and the five ids once and shows the lineup returned by the API', async () => {
+  it('sends the formation and the five ids once and keeps showing the saved lineup', async () => {
     vi.mocked(saveClubLineup).mockResolvedValue(SAVED_LINEUP)
     const user = await openLineup()
 
-    await user.selectOptions(screen.getByLabelText('Formação'), '2-1-1')
+    await chooseFormation(user, '2-1-1')
     await user.selectOptions(screen.getByLabelText('Goleiro'), String(GOALKEEPER.id))
     await user.selectOptions(screen.getByLabelText('Defesa 1'), String(CENTER_BACK.id))
     await user.selectOptions(screen.getByLabelText('Defesa 2'), String(FULL_BACK.id))
-    await user.selectOptions(screen.getByLabelText('Meio-campo 1'), String(MIDFIELDER.id))
+    await user.selectOptions(screen.getByLabelText('Meio 1'), String(MIDFIELDER.id))
     await user.selectOptions(screen.getByLabelText('Ataque 1'), String(STRIKER.id))
     vi.mocked(getClubLineup).mockResolvedValue(SAVED_LINEUP)
     await user.dblClick(screen.getByRole('button', { name: 'Salvar escalação' }))
@@ -185,18 +197,20 @@ describe('ClubPage lineup', () => {
       formation: '2-1-1',
       player_ids: [7, 9, 10, 1, 12],
     })
-    expect(await screen.findByText('Escalação 2-1-1 salva.')).toBeInTheDocument()
-    await waitFor(() =>
-      expect(lineupRows()).toEqual([
-        'Paredão',
-        'Zagueiro Forte',
-        'Lateral Veloz',
-        'Meia Lua',
-        'Artilheiro',
-      ]),
-    )
-    expect(summaryValue('Situação')).toBe('Completa')
+    expect(await screen.findByRole('status')).toHaveTextContent('Escalação salva')
+    await waitFor(() => expect(screen.getByText('Completa')).toBeInTheDocument())
     expect(screen.queryByText(/Escalação incompleta/)).not.toBeInTheDocument()
+    expect(fieldNames().map((name) => name.split(/[A-Z]{3} ·/)[0])).toEqual([
+      'PParedão',
+      'ZFZagueiro Forte',
+      'LVLateral Veloz',
+      'MLMeia Lua',
+      'AArtilheiro',
+    ])
+    expect(screen.getByRole('radio', { name: /^2-1-1/ })).toBeChecked()
+    expect(screen.getByLabelText('Goleiro')).toHaveValue(String(GOALKEEPER.id))
+    expect(screen.getByLabelText('Defesa 2')).toHaveValue(String(FULL_BACK.id))
+    expect(screen.getByLabelText('Ataque 1')).toHaveValue(String(STRIKER.id))
   })
 
   it('shows the API message when the lineup is refused', async () => {
@@ -208,8 +222,8 @@ describe('ClubPage lineup', () => {
 
     await user.click(screen.getByRole('button', { name: 'Salvar escalação' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Jogador doente não pode ser escalado.',
-    )
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('A escalação foi recusada')
+    expect(alert).toHaveTextContent('Jogador doente não pode ser escalado.')
   })
 })
