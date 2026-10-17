@@ -1,100 +1,98 @@
 import { useCallback, useState } from 'react'
-import type { Sale, SquadPlayer } from '../../api/types'
-import { ConfirmDialog } from '../../components/ConfirmDialog'
+import type { ClubDetails, Sale, SquadPlayer } from '../../api/types'
+import { Button } from '../../components/Button'
+import { Card } from '../../components/Card'
 import { DataTable } from '../../components/DataTable'
-import { ResultDialog } from '../../components/ResultDialog'
-import { SummaryList } from '../../components/SummaryList'
-import { formatMoney, formatSignedMoney } from '../../format/money'
-import { formatPercent } from '../../format/percent'
+import { MAX_SQUAD_SIZE } from '../../config/league'
+import type { Action } from '../../hooks/useAction'
+import { SaleConfirmDialog, SaleResultDialog } from './SaleDialog'
 import { buildSquadColumns } from './squadColumns'
 
 type SquadDialog = { kind: 'confirm'; player: SquadPlayer } | { kind: 'result'; sale: Sale }
 
 interface ClubSquadPanelProps {
-  players: SquadPlayer[]
+  club: ClubDetails
   isLoading: boolean
-  isSelling: boolean
-  onSell: (player: SquadPlayer) => Promise<Sale | undefined>
+  starterIds: Set<number>
+  sell: Action<[number], Sale>
+  onShowHistory: () => void
+  onBrowseFreePlayers: () => void
 }
 
-export function ClubSquadPanel({ players, isLoading, isSelling, onSell }: ClubSquadPanelProps) {
+export function ClubSquadPanel({
+  club,
+  isLoading,
+  starterIds,
+  sell,
+  onShowHistory,
+  onBrowseFreePlayers,
+}: ClubSquadPanelProps) {
   const [dialog, setDialog] = useState<SquadDialog>()
   const closeDialog = useCallback(() => setDialog(undefined), [])
-  const columns = buildSquadColumns({ onSell: (player) => setDialog({ kind: 'confirm', player }) })
+  const columns = buildSquadColumns({
+    onSell: (player) => {
+      sell.clearError()
+      setDialog({ kind: 'confirm', player })
+    },
+  })
 
-  async function sell(player: SquadPlayer) {
-    const sale = await onSell(player)
+  async function confirmSale(player: SquadPlayer) {
+    const sale = await sell.run(player.id)
     if (sale) setDialog({ kind: 'result', sale })
   }
 
   function renderDialog() {
     if (!dialog) return null
     if (dialog.kind === 'confirm') {
-      const { player } = dialog
       return (
-        <ConfirmDialog
-          title="Vender jogador"
-          confirmLabel="Vender"
-          pendingLabel="Vendendo…"
-          isPending={isSelling}
-          onConfirm={() => sell(player)}
+        <SaleConfirmDialog
+          player={dialog.player}
+          club={club}
+          isStarter={starterIds.has(dialog.player.id)}
+          isPending={sell.isPending}
+          error={sell.error}
+          onConfirm={() => confirmSale(dialog.player)}
           onCancel={closeDialog}
-        >
-          <p>
-            Vender <strong>{player.name}</strong>? A API calcula o valor de venda, a multa e a
-            comissão no momento da venda.
-          </p>
-          <SummaryList
-            items={[
-              { label: 'Valor de mercado', value: formatMoney(player.market_value) },
-              { label: 'Dias restantes', value: player.contract.remaining_days },
-              {
-                label: 'Multa se vendido agora',
-                value: formatPercent(player.contract.penalty_rate),
-              },
-            ]}
-          />
-        </ConfirmDialog>
+        />
       )
     }
-    const { sale } = dialog
     return (
-      <ResultDialog
-        title="Venda concluída"
-        description={
-          <>
-            <strong>{sale.player_name}</strong> foi vendido. Valores calculados pela API:
-          </>
-        }
-        items={[
-          { label: 'Valor de compra', value: formatMoney(sale.purchase_value) },
-          { label: 'Valor de venda', value: formatMoney(sale.value) },
-          { label: 'Dias restantes', value: sale.remaining_days },
-          {
-            label: 'Multa',
-            value: `${formatMoney(sale.penalty)} (${formatPercent(sale.penalty_rate)})`,
-          },
-          { label: 'Lucro', value: formatSignedMoney(sale.profit) },
-          { label: 'Comissão', value: formatMoney(sale.fee) },
-          { label: 'Crédito', value: formatSignedMoney(sale.cash_change) },
-          { label: 'Novo caixa', value: formatMoney(sale.club_cash) },
-        ]}
+      <SaleResultDialog
+        sale={dialog.sale}
+        club={club}
+        onShowHistory={() => {
+          closeDialog()
+          onShowHistory()
+        }}
         onClose={closeDialog}
       />
     )
   }
 
   return (
-    <>
+    <Card
+      title="Elenco"
+      description="Ordem por posição (GOL, ZAG, LAT, MEI, ATA), depois pelo nome. Contrato calculado para uma venda agora."
+    >
       <DataTable
         caption="Elenco"
         columns={columns}
-        rows={players}
+        rows={club.players}
         getRowKey={(player) => player.id}
         isLoading={isLoading}
-        emptyMessage="Elenco vazio. Compre jogadores livres na tela de jogadores."
+        loadingLabel="Carregando elenco…"
+        empty={{
+          icon: 'shirt',
+          title: 'Nenhum jogador no elenco',
+          description: `Compre jogadores livres para montar o elenco. O limite é de ${MAX_SQUAD_SIZE} jogadores, e o custo de cada compra não pode passar de 50% do caixa.`,
+          action: (
+            <Button variant="secondary" size="sm" icon="users" onClick={onBrowseFreePlayers}>
+              Ver jogadores livres
+            </Button>
+          ),
+        }}
       />
       {renderDialog()}
-    </>
+    </Card>
   )
 }

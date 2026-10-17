@@ -9,6 +9,8 @@ import { renderWithProviders } from '../../test/render'
 import { ClubsPage } from './ClubsPage'
 
 vi.mock('../../api/clubs')
+vi.mock('../../api/players')
+vi.mock('../../api/matches')
 
 const RICH_CLUB = makeClub({
   id: 3,
@@ -22,16 +24,26 @@ const POOR_CLUB = makeClub()
 
 async function renderPage() {
   const user = userEvent.setup()
-  renderWithProviders(<ClubsPage />)
-  await screen.findByRole('cell', { name: RICH_CLUB.name })
+  renderWithProviders(<ClubsPage />, {
+    url: '/clubs',
+    path: '/clubs',
+    routes: { '/clubs/:clubId': <p>Página do clube</p> },
+  })
+  await screen.findByText(RICH_CLUB.name)
   return user
 }
 
 function clubNamesInOrder() {
   return screen
-    .getAllByRole('row')
-    .slice(1)
-    .map((row) => within(row).getAllByRole('cell')[0].textContent)
+    .getAllByRole('link', { name: /^Ver clube/ })
+    .map((link) => link.getAttribute('aria-label'))
+}
+
+async function fillClub(user: ReturnType<typeof userEvent.setup>, name: string, acronym: string) {
+  const dialog = within(screen.getByRole('dialog', { name: 'Novo clube' }))
+  await user.type(dialog.getByLabelText('Nome'), name)
+  await user.type(dialog.getByLabelText('Sigla'), acronym)
+  return dialog
 }
 
 beforeEach(() => {
@@ -42,84 +54,108 @@ describe('ClubsPage', () => {
   it('lists the clubs in the order returned by the API, sorted by name by default', async () => {
     await renderPage()
 
+    expect(listClubs).toHaveBeenCalledOnce()
     expect(listClubs).toHaveBeenLastCalledWith('name')
-    expect(clubNamesInOrder()).toEqual([RICH_CLUB.name, POOR_CLUB.name])
+    expect(clubNamesInOrder()).toEqual([
+      `Ver clube ${RICH_CLUB.name}`,
+      `Ver clube ${POOR_CLUB.name}`,
+    ])
     const row = rowOf(RICH_CLUB.name)
-    expect(row.getByText('ZEC')).toBeInTheDocument()
+    expect(row.getAllByText('ZEC')).toHaveLength(2)
     expect(row.getByText('1.500,50')).toBeInTheDocument()
     expect(row.getByText('250,00')).toBeInTheDocument()
     expect(row.getByText('1.750,50')).toBeInTheDocument()
-    expect(row.getByRole('link', { name: RICH_CLUB.name })).toHaveAttribute('href', '/clubs/3')
+    expect(row.getByRole('link', { name: `Ver clube ${RICH_CLUB.name}` })).toHaveAttribute(
+      'href',
+      '/clubs/3',
+    )
+    expect(screen.getByText('2 de 20')).toBeInTheDocument()
   })
 
   it('sends the chosen sort and shows the new order from the API', async () => {
     const user = await renderPage()
     vi.mocked(listClubs).mockResolvedValue([POOR_CLUB, RICH_CLUB])
 
-    await user.selectOptions(screen.getByLabelText('Ordenar por'), 'net_worth_asc')
+    await user.click(screen.getByRole('button', { name: /^Ordenar: nome/ }))
+    await user.click(screen.getByRole('menuitemradio', { name: 'Patrimônio (menor para o maior)' }))
 
     expect(listClubs).toHaveBeenLastCalledWith('net_worth_asc')
-    await waitFor(() => expect(clubNamesInOrder()).toEqual([POOR_CLUB.name, RICH_CLUB.name]))
+    await waitFor(() =>
+      expect(clubNamesInOrder()).toEqual([
+        `Ver clube ${POOR_CLUB.name}`,
+        `Ver clube ${RICH_CLUB.name}`,
+      ]),
+    )
+  })
+
+  it('shows the empty and the error states of the list', async () => {
+    vi.mocked(listClubs).mockResolvedValueOnce([])
+    renderWithProviders(<ClubsPage />)
+
+    expect(await screen.findByText('Nenhum clube cadastrado')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Novo clube' })).toHaveLength(2)
+  })
+
+  it('shows the API error with a retry', async () => {
+    vi.mocked(listClubs).mockRejectedValueOnce(new ApiError('Não foi possível conectar à API.', 0))
+    const user = userEvent.setup()
+    renderWithProviders(<ClubsPage />)
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Não foi possível carregar os clubes')
+    expect(alert).toHaveTextContent('Não foi possível conectar à API.')
+    await user.click(within(alert).getByRole('button', { name: 'Tentar de novo' }))
+    expect(await screen.findByText(RICH_CLUB.name)).toBeInTheDocument()
   })
 
   it('validates the new club before sending it', async () => {
     const user = await renderPage()
 
     await user.click(screen.getByRole('button', { name: 'Novo clube' }))
-    const dialog = within(screen.getByRole('dialog'))
+    const dialog = within(screen.getByRole('dialog', { name: 'Novo clube' }))
     await user.click(dialog.getByRole('button', { name: 'Criar clube' }))
 
-    expect(dialog.getByLabelText('Nome')).toHaveAccessibleDescription(
-      'De 3 a 60 caracteres. Campo obrigatório.',
-    )
-    expect(dialog.getByLabelText('Sigla')).toHaveAccessibleDescription(
-      '3 letras do nome, começando pela inicial. Campo obrigatório.',
-    )
+    expect(dialog.getByLabelText('Nome')).toHaveAccessibleDescription('Campo obrigatório.')
+    expect(dialog.getByLabelText('Sigla')).toHaveAccessibleDescription('Campo obrigatório.')
 
-    await user.type(dialog.getByLabelText('Nome'), 'Al')
-    await user.type(dialog.getByLabelText('Sigla'), 'A1')
+    await fillClub(user, 'Al', 'A1')
     await user.click(dialog.getByRole('button', { name: 'Criar clube' }))
 
-    expect(dialog.getByLabelText('Nome')).toHaveAccessibleDescription(
-      'De 3 a 60 caracteres. Use de 3 a 60 caracteres.',
-    )
-    expect(dialog.getByLabelText('Sigla')).toHaveAccessibleDescription(
-      '3 letras do nome, começando pela inicial. Use 3 letras de A a Z.',
-    )
+    expect(dialog.getByLabelText('Nome')).toHaveAccessibleDescription('Use de 3 a 60 caracteres.')
+    expect(dialog.getByLabelText('Sigla')).toHaveAccessibleDescription('Use 3 letras de A a Z.')
     expect(createClub).not.toHaveBeenCalled()
   })
 
   it('shows the API message when the club is refused and keeps the form open', async () => {
-    const message = 'Já existe um clube com esse nome.'
+    const message = 'Já existe um clube com o nome "Alfa FC".'
     vi.mocked(createClub).mockRejectedValue(new ApiError(message, 409))
     const user = await renderPage()
 
     await user.click(screen.getByRole('button', { name: 'Novo clube' }))
-    const dialog = within(screen.getByRole('dialog'))
-    await user.type(dialog.getByLabelText('Nome'), 'Alfa FC')
-    await user.type(dialog.getByLabelText('Sigla'), 'alf')
+    const dialog = await fillClub(user, 'Alfa FC', 'alf')
     await user.click(dialog.getByRole('button', { name: 'Criar clube' }))
 
     expect(createClub).toHaveBeenCalledWith({ name: 'Alfa FC', acronym: 'ALF' })
-    expect(await screen.findByRole('alert')).toHaveTextContent(message)
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const alert = await dialog.findByRole('alert')
+    expect(alert).toHaveTextContent('Não foi possível criar o clube')
+    expect(alert).toHaveTextContent(message)
+    expect(screen.getByRole('dialog', { name: 'Novo clube' })).toBeInTheDocument()
   })
 
-  it('creates a club and reloads the list from the API', async () => {
+  it('creates a club once, reloads the clubs and opens the new club page', async () => {
     const created = makeClub({ id: 4, name: 'Gama Futebol Clube', acronym: 'GFC' })
     vi.mocked(createClub).mockResolvedValue(created)
     const user = await renderPage()
-    vi.mocked(listClubs).mockResolvedValue([RICH_CLUB, created, POOR_CLUB])
 
     await user.click(screen.getByRole('button', { name: 'Novo clube' }))
-    const dialog = within(screen.getByRole('dialog'))
-    await user.type(dialog.getByLabelText('Nome'), created.name)
-    await user.type(dialog.getByLabelText('Sigla'), created.acronym)
+    const dialog = await fillClub(user, created.name, created.acronym)
     await user.dblClick(dialog.getByRole('button', { name: 'Criar clube' }))
 
     expect(createClub).toHaveBeenCalledOnce()
-    expect(await screen.findByText('Clube "Gama Futebol Clube" criado.')).toBeInTheDocument()
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(await screen.findByRole('cell', { name: created.name })).toBeInTheDocument()
+    expect(await screen.findByText('Página do clube')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Clube criadoGama Futebol Clube (GFC) começa com 300,00 em caixa.',
+    )
+    await waitFor(() => expect(listClubs).toHaveBeenCalledTimes(2))
   })
 })

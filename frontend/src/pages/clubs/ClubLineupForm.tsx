@@ -1,37 +1,53 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm, useWatch } from 'react-hook-form'
-import { FORMATIONS, type Lineup, type LineupPayload, type Player } from '../../api/types'
+import { useController, useForm, useWatch } from 'react-hook-form'
+import {
+  FORMATIONS,
+  type Formation,
+  type Lineup,
+  type LineupPayload,
+  type Player,
+} from '../../api/types'
+import { Identity } from '../../components/Avatar'
 import { Button } from '../../components/Button'
-import { SelectField } from '../../components/FormField'
+import { ConditionBadge } from '../../components/ConditionBadge'
+import { DataTable, type Column } from '../../components/DataTable'
+import { ChoiceField, SelectField } from '../../components/FormField'
+import { Icon } from '../../components/Icon'
+import { ActionErrorNotice, Notice } from '../../components/Notice'
+import { Pitch } from '../../components/Pitch'
 import {
   GOALKEEPER_SLOT,
   LINEUP_SIZE,
+  POSITION_DUEL_ATTRIBUTES,
   SECTOR_POSITIONS,
+  arrangeOnField,
   buildLineupSlots,
   canStart,
+  describeFormation,
   fitsSlot,
   type LineupSlot,
 } from '../../config/formations'
-import { CONDITION_LABELS, POSITION_LABELS, SECTOR_LABELS } from '../../format/labels'
+import { DUEL_ATTRIBUTE_LABELS, SECTOR_LABELS } from '../../format/labels'
+import type { ActionError } from '../../hooks/useAction'
 import { lineupSchema, type LineupFormValues } from './clubSchemas'
 
+interface SlotRow {
+  slot: LineupSlot
+  index: number
+}
+
+function knownFormation(formation: string): Formation | undefined {
+  return FORMATIONS.find((option) => option === formation)
+}
+
 function slotsOf(formation: string): LineupSlot[] {
-  const knownFormation = FORMATIONS.find((option) => option === formation)
-  return knownFormation ? buildLineupSlots(knownFormation) : [GOALKEEPER_SLOT]
+  const known = knownFormation(formation)
+  return known ? buildLineupSlots(known) : [GOALKEEPER_SLOT]
 }
 
 function slotLabel(slot: LineupSlot): string {
   const sectorLabel = SECTOR_LABELS[slot.sector]
   return slot.sector === 'goalkeeper' ? sectorLabel : `${sectorLabel} ${slot.number}`
-}
-
-function slotHint(slot: LineupSlot, options: Player[]): string {
-  if (options.length === 0) return 'Nenhum jogador do elenco disponível para esta vaga.'
-  return SECTOR_POSITIONS[slot.sector].map((position) => POSITION_LABELS[position]).join(' ou ')
-}
-
-function optionLabel(player: Player): string {
-  return `${player.name} (${POSITION_LABELS[player.position]}, ${CONDITION_LABELS[player.condition]})`
 }
 
 function assignStarters(slots: LineupSlot[], starters: Player[]): string[] {
@@ -43,42 +59,82 @@ function assignStarters(slots: LineupSlot[], starters: Player[]): string[] {
   })
 }
 
-function buildDefaultValues(lineup: Lineup, eligiblePlayers: Player[]): LineupFormValues {
+function lineupFormValues(lineup: Lineup, squad: Player[]): LineupFormValues {
   const formation = lineup.formation ?? ''
-  const eligibleIds = new Set(eligiblePlayers.map((player) => player.id))
+  const eligibleIds = new Set(squad.filter(canStart).map((player) => player.id))
   const starters = lineup.players.filter((player) => eligibleIds.has(player.id))
   return { formation, player_ids: assignStarters(slotsOf(formation), starters) }
+}
+
+function FormationThumbnail({ formation }: { formation: Formation }) {
+  const spots = arrangeOnField(
+    buildLineupSlots(formation).map((slot, index) => ({ item: index, sector: slot.sector })),
+  )
+  return (
+    <span aria-hidden="true">
+      <Pitch
+        label={formation}
+        orientation="vertical"
+        size="mini"
+        markers={spots.map((spot) => ({
+          key: String(spot.item),
+          x: spot.spread * 100,
+          y: 100 - spot.depth * 100,
+          label: '',
+          tone: 'home',
+        }))}
+      />
+    </span>
+  )
+}
+
+function usedAttributes(player: Player): string {
+  return POSITION_DUEL_ATTRIBUTES[player.position]
+    .map((attribute) => `${DUEL_ATTRIBUTE_LABELS[attribute]} ${player[attribute]}`)
+    .join(' · ')
 }
 
 interface ClubLineupFormProps {
   lineup: Lineup
   squad: Player[]
   isPending: boolean
+  error: ActionError | undefined
   onSave: (payload: LineupPayload) => void
 }
 
-export function ClubLineupForm({ lineup, squad, isPending, onSave }: ClubLineupFormProps) {
+export function ClubLineupForm({ lineup, squad, isPending, error, onSave }: ClubLineupFormProps) {
   const eligiblePlayers = squad.filter(canStart)
+  const savedValues = lineupFormValues(lineup, squad)
   const {
     register,
     handleSubmit,
     control,
     getValues,
     setValue,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm({
     resolver: zodResolver(lineupSchema),
-    defaultValues: buildDefaultValues(lineup, eligiblePlayers),
+    defaultValues: savedValues,
   })
+  const { field: formationField } = useController({ control, name: 'formation' })
   const [formation, selectedIds] = useWatch({ control, name: ['formation', 'player_ids'] })
   const slots = slotsOf(formation)
+  const playersById = new Map(squad.map((player) => [String(player.id), player]))
+  const selectedPlayers = selectedIds
+    .slice(0, slots.length)
+    .flatMap((id) => playersById.get(id) ?? [])
+  const unfitStarters = selectedPlayers.filter((player) => player.condition === 'MAL_CONDICIONADO')
 
-  function keepFittingStarters(nextFormation: string) {
+  function changeFormation(nextFormation: string) {
+    formationField.onChange(nextFormation)
     const nextSlots = slotsOf(nextFormation)
     getValues('player_ids').forEach((playerId, index) => {
-      const player = eligiblePlayers.find((candidate) => String(candidate.id) === playerId)
+      const player = playersById.get(playerId)
       const slot = nextSlots[index]
-      if (!player || !slot || !fitsSlot(player, slot)) setValue(`player_ids.${index}`, '')
+      if (!player || !slot || !fitsSlot(player, slot)) {
+        setValue(`player_ids.${index}`, '', { shouldDirty: true })
+      }
     })
   }
 
@@ -89,66 +145,138 @@ export function ClubLineupForm({ lineup, squad, isPending, onSave }: ClubLineupF
     )
   }
 
+  const columns: Column<SlotRow>[] = [
+    {
+      key: 'slot',
+      header: 'Vaga',
+      render: ({ slot }) => (
+        <Identity
+          visual={null}
+          title={SECTOR_LABELS[slot.sector]}
+          subtitle={SECTOR_POSITIONS[slot.sector].join(' ou ')}
+        />
+      ),
+    },
+    {
+      key: 'starter',
+      header: 'Titular',
+      render: ({ slot, index }) => {
+        const options = optionsFor(slot, index)
+        return (
+          <SelectField
+            label={slotLabel(slot)}
+            hideLabel
+            error={errors.player_ids?.[index]?.message}
+            {...register(`player_ids.${index}`)}
+          >
+            <option value="">
+              {options.length > 0
+                ? 'Selecione…'
+                : `Sem ${SECTOR_POSITIONS[slot.sector].join(' ou ')}`}
+            </option>
+            {options.map((player) => (
+              <option key={player.id} value={player.id}>
+                {player.name} ({player.position})
+              </option>
+            ))}
+          </SelectField>
+        )
+      },
+    },
+    {
+      key: 'condition',
+      header: 'Condição',
+      render: ({ index }) => {
+        const player = playersById.get(selectedIds[index])
+        return player ? <ConditionBadge condition={player.condition} /> : '—'
+      },
+    },
+    {
+      key: 'overall',
+      header: 'Overall',
+      align: 'end',
+      render: ({ index }) => playersById.get(selectedIds[index])?.overall ?? '—',
+    },
+    {
+      key: 'attributes',
+      header: 'Atributos usados',
+      render: ({ index }) => {
+        const player = playersById.get(selectedIds[index])
+        return player ? usedAttributes(player) : '—'
+      },
+    },
+  ]
+
   return (
     <form
-      className="card"
+      className="lineup-form"
       onSubmit={handleSubmit(onSave)}
       noValidate
       aria-label="Edição da escalação"
     >
-      <div className="form-grid">
-        <SelectField
+      <div className="card__body">
+        <ActionErrorNotice error={error} title="A escalação foi recusada" />
+        <ChoiceField
           label="Formação"
-          hint="Defesa, meio-campo e ataque, sempre com 1 goleiro."
+          name="formation"
+          layout="tiles"
+          hint="Os números contam os jogadores de linha da defesa para frente. O goleiro é fixo."
+          value={formationField.value}
           error={errors.formation?.message}
-          {...register('formation', {
-            onChange: (event) => keepFittingStarters(event.target.value),
-          })}
-        >
-          <option value="">Selecione…</option>
-          {FORMATIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </SelectField>
+          onChange={changeFormation}
+          onBlur={formationField.onBlur}
+          options={FORMATIONS.map((option) => ({
+            value: option,
+            label: (
+              <>
+                <FormationThumbnail formation={option} />
+                {option}
+              </>
+            ),
+            description: describeFormation(option),
+          }))}
+        />
       </div>
-      <fieldset className="form-fieldset">
-        <legend>Titulares</legend>
-        <p className="form-field__hint form-intro">
-          Só aparecem jogadores do elenco na posição da vaga. Jogadores doentes não podem ser
-          escalados.
-        </p>
-        <div className="form-grid">
-          {slots.map((slot, index) => {
-            const options = optionsFor(slot, index)
-            return (
-              <SelectField
-                key={index}
-                label={slotLabel(slot)}
-                hint={slotHint(slot, options)}
-                error={errors.player_ids?.[index]?.message}
-                {...register(`player_ids.${index}`)}
-              >
-                <option value="">Selecione…</option>
-                {options.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {optionLabel(player)}
-                  </option>
-                ))}
-              </SelectField>
-            )
-          })}
-        </div>
+      <DataTable
+        caption="Vagas da escalação"
+        columns={columns}
+        rows={slots.map((slot, index) => ({ slot, index }))}
+        getRowKey={({ index }) => index}
+        isLoading={false}
+        empty={{ icon: 'clipboard', title: 'Escolha a formação' }}
+      />
+      <div className="card__body">
         {slots.length < LINEUP_SIZE && (
           <p className="form-field__hint">Escolha a formação para ver as vagas de linha.</p>
         )}
-      </fieldset>
-      <div className="form-actions">
-        <Button type="submit" isPending={isPending}>
+        {unfitStarters.length > 0 && (
+          <Notice
+            tone="warning"
+            title={`${unfitStarters.map((player) => player.name).join(' e ')} ${
+              unfitStarters.length === 1 ? 'está mal condicionado' : 'estão mal condicionados'
+            }`}
+          >
+            Podem jogar, mas cada atributo vale 15% a menos durante a partida.
+          </Notice>
+        )}
+      </div>
+      <footer className="card__footer lineup-form__footer">
+        <p className="modal__footer-note">
+          <Icon name="info" size={14} />
+          Titular vendido ou que fica Doente sai da escalação; o clube só volta a jogar depois de
+          escalar de novo.
+        </p>
+        <Button
+          variant="secondary"
+          disabled={!isDirty || isPending}
+          onClick={() => reset(savedValues)}
+        >
+          Cancelar
+        </Button>
+        <Button type="submit" icon="check" isPending={isPending}>
           {isPending ? 'Salvando…' : 'Salvar escalação'}
         </Button>
-      </div>
+      </footer>
     </form>
   )
 }
