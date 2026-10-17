@@ -1,8 +1,10 @@
 import type {
   ClubSort,
   Condition,
+  ContractStatus,
   DuelAttribute,
   MatchResult,
+  Player,
   PlayerSort,
   Position,
   TransactionType,
@@ -13,7 +15,7 @@ export const POSITION_LABELS: Record<Position, string> = {
   GOL: 'Goleiro',
   ZAG: 'Zagueiro',
   LAT: 'Lateral',
-  MEI: 'Meio-campista',
+  MEI: 'Meio-campo',
   ATA: 'Atacante',
 }
 
@@ -24,18 +26,18 @@ export const CONDITION_LABELS: Record<Condition, string> = {
 }
 
 export const PLAYER_SORT_LABELS: Record<PlayerSort, string> = {
-  name: 'Nome (A–Z)',
-  value_desc: 'Valor de mercado (maior primeiro)',
-  value_asc: 'Valor de mercado (menor primeiro)',
-  age_asc: 'Idade (mais novo primeiro)',
-  age_desc: 'Idade (mais velho primeiro)',
-  position: 'Posição',
+  name: 'Nome',
+  value_desc: 'Maior valor de mercado',
+  value_asc: 'Menor valor de mercado',
+  age_desc: 'Maior idade',
+  age_asc: 'Menor idade',
+  position: 'Posição (GOL a ATA)',
 }
 
 export const CLUB_SORT_LABELS: Record<ClubSort, string> = {
-  name: 'Nome (A–Z)',
-  net_worth_desc: 'Patrimônio (maior primeiro)',
-  net_worth_asc: 'Patrimônio (menor primeiro)',
+  name: 'Nome',
+  net_worth_desc: 'Patrimônio (maior para o menor)',
+  net_worth_asc: 'Patrimônio (menor para o maior)',
 }
 
 export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
@@ -43,10 +45,16 @@ export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
   VENDA: 'Venda',
 }
 
+export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
+  ATIVO: 'ATIVO',
+  ENCERRADO: 'ENCERRADO',
+  RESCINDIDO: 'RESCINDIDO',
+}
+
 export const SECTOR_LABELS: Record<Sector, string> = {
   goalkeeper: 'Goleiro',
   defense: 'Defesa',
-  midfield: 'Meio-campo',
+  midfield: 'Meio',
   attack: 'Ataque',
 }
 
@@ -61,4 +69,8 @@ export const DUEL_ATTRIBUTE_LABELS: Record<DuelAttribute, string> = {
   passing: 'Passe',
   dribbling: 'Drible',
   defending: 'Defesa',
+}
+
+export function describePlayer(player: Player): string {
+  return `${player.position} · ${POSITION_LABELS[player.position]} · ${player.age} anos`
 }
