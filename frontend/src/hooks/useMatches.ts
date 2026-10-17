@@ -1,14 +1,16 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { getMatch, listMatches } from '../api/matches'
-import type { MatchFilters } from '../api/types'
 import { useApiQuery } from './useApiQuery'
+import { useLeague } from './useLeague'
 
-export function useMatches() {
-  const [filters, setFilters] = useState<MatchFilters>({})
-  const fetchMatches = useCallback(() => listMatches(filters), [filters])
-  const query = useApiQuery(fetchMatches)
-
-  return { ...query, filters, applyFilters: setFilters }
+export function useMatchHistory(clubId: number | undefined) {
+  const league = useLeague()
+  const fetchClubMatches = useMemo(
+    () => (clubId === undefined ? null : () => listMatches({ club_id: clubId })),
+    [clubId],
+  )
+  const clubMatches = useApiQuery(fetchClubMatches)
+  return clubId === undefined ? league.matches : clubMatches
 }
 
 export function useMatchDetails(matchId: number) {
