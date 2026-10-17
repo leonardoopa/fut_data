@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Button } from './Button'
+import { Icon } from './Icon'
 import { Modal } from './Modal'
 import { SummaryList, type SummaryItem } from './SummaryList'
 
@@ -19,13 +20,24 @@ export function ResultDialog({
   onClose,
 }: ResultDialogProps) {
   return (
-    <Modal title={title} onClose={onClose}>
-      <p>{description}</p>
-      <SummaryList items={items} />
-      <div className="form-actions">
-        {secondaryAction}
-        <Button onClick={onClose}>Fechar</Button>
-      </div>
+    <Modal
+      title={title}
+      description={description}
+      size="sm"
+      icon={
+        <span className="modal__icon modal__icon--success">
+          <Icon name="checkCircle" />
+        </span>
+      }
+      onClose={onClose}
+      footer={
+        <>
+          {secondaryAction}
+          <Button onClick={onClose}>Fechar</Button>
+        </>
+      }
+    >
+      <SummaryList label={title} items={items} />
     </Modal>
   )
 }

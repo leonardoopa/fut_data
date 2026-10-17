@@ -1,15 +1,16 @@
 import { z } from 'zod'
 import { CONDITIONS, POSITIONS } from '../../api/types'
+import { toBrasiliaDateTime } from '../../format/dateTime'
 import {
   optionalDecimal,
   optionalInteger,
-  optionalOption,
   optionalText,
-  requiredDateTime,
+  requiredDate,
   requiredId,
   requiredInteger,
   requiredOption,
   requiredText,
+  requiredTime,
 } from '../../validation/fields'
 
 const attribute = () => requiredInteger(1, 99)
@@ -35,29 +36,31 @@ export const playerConditionSchema = z.object({
   condition: requiredOption(CONDITIONS),
 })
 
-export const playerFiltersSchema = z.object({
-  search: optionalText(2, 100),
-  position: optionalOption(POSITIONS),
-  condition: optionalOption(CONDITIONS),
-  club_id: z
-    .string()
-    .optional()
-    .transform((value) => (value ? Number(value) : undefined)),
-  free: z
-    .boolean()
-    .optional()
-    .transform((value) => value || undefined),
-  min_age: optionalInteger(16, 45),
-  max_age: optionalInteger(16, 45),
-  min_value: optionalDecimal(),
-  max_value: optionalDecimal(),
+export const playerSearchSchema = optionalText(2, 100)
+
+export const ageRangeSchema = z.object({
+  min: optionalInteger(16, 45),
+  max: optionalInteger(16, 45),
 })
 
-export const playerPurchaseSchema = z.object({
-  club_id: requiredId(),
-  loyalty_until: requiredDateTime(),
+export const valueRangeSchema = z.object({
+  min: optionalDecimal(),
+  max: optionalDecimal(),
 })
+
+export const playerPurchaseSchema = z
+  .object({
+    club_id: requiredId(),
+    loyalty_date: requiredDate(),
+    loyalty_time: requiredTime(),
+  })
+  .transform(({ club_id, loyalty_date, loyalty_time }) => ({
+    club_id,
+    loyalty_until: toBrasiliaDateTime(loyalty_date, loyalty_time),
+  }))
 
 export type PlayerProfileFormValues = z.input<typeof playerProfileSchema>
 export type PlayerRegistrationFormValues = z.input<typeof playerRegistrationSchema>
-export type PlayerFiltersFormValues = z.input<typeof playerFiltersSchema>
+export type RangeFormValues = z.input<typeof ageRangeSchema>
+export type NumberRange = z.output<typeof ageRangeSchema>
+export type PlayerPurchaseFormValues = z.input<typeof playerPurchaseSchema>
