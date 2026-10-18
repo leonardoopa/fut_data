@@ -1,0 +1,200 @@
+.last-match {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.scoreboard--with-action {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+}
+
+.scoreboard__side {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  min-width: 0;
+  text-align: right;
+}
+
+.scoreboard__side--away {
+  flex-direction: row-reverse;
+  text-align: left;
+}
+
+.scoreboard__club {
+  min-width: 0;
+}
+
+.scoreboard__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scoreboard__meta,
+.scoreboard__date {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+}
+
+.scoreboard__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.scoreboard__score {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scoreboard__action {
+  justify-self: end;
+}
+
+.score-chip {
+  display: inline-block;
+  min-width: 48px;
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.date-time {
+  white-space: nowrap;
+}
+
+.date-time__time {
+  margin-left: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.duels-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.duels-link:hover {
+  color: var(--color-primary);
+}
+
+.duel-value {
+  display: inline-flex;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.match-pitch {
+  overflow-x: auto;
+}
+
+.match-pitch .pitch {
+  min-width: 720px;
+}
+
+.pitch-team {
+  position: absolute;
+  top: var(--space-2);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: rgb(17 24 39 / 55%);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.pitch-team--home {
+  left: var(--space-2);
+}
+
+.pitch-team--away {
+  right: var(--space-2);
+}
+
+.pitch-team__dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.pitch-team--away .pitch-team__dot {
+  background: #ffffff;
+}
+
+.pitch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  list-style: none;
+}
+
+.pitch-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.pitch-legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-warning);
+}
+
+@media (max-width: 640px) {
+  .scoreboard,
+  .scoreboard--with-action {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .scoreboard__side {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+
+  .scoreboard__side--away {
+    align-items: flex-start;
+  }
+
+  .scoreboard__action {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+}

@@ -5,8 +5,10 @@ export function summaryValue(label: string, container: HTMLElement = document.bo
   return term.nextElementSibling?.textContent
 }
 
-export function rowOf(name: string) {
-  const row = within(document.body).getByRole('cell', { name }).closest('tr')
-  if (!row) throw new Error(`Linha de ${name} não encontrada.`)
+export function rowOf(text: string, container: HTMLElement = document.body) {
+  const row = within(container)
+    .getAllByRole('row')
+    .find((candidate) => within(candidate).queryByText(text) !== null)
+  if (!row) throw new Error(`Linha de ${text} não encontrada.`)
   return within(row)
 }
