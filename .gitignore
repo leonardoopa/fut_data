@@ -12,4 +12,3 @@ fotos-originais/
 .ruff_cache/
 node_modules/
 dist/
-graphify-out/cache/
