@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { isLocalDateTime, toBrasiliaDateTime } from '../format/dateTime'
+import { isDate, isTime } from '../format/dateTime'
 
 const REQUIRED_MESSAGE = 'Campo obrigatório.'
 const SELECT_MESSAGE = 'Selecione uma opção.'
@@ -40,12 +40,12 @@ export function requiredLetters(length: number) {
     .transform((value) => value.toUpperCase())
 }
 
-export function requiredDateTime() {
-  return z
-    .string()
-    .min(1, REQUIRED_MESSAGE)
-    .refine((value) => value === '' || isLocalDateTime(value), 'Informe a data e a hora.')
-    .transform(toBrasiliaDateTime)
+export function requiredDate() {
+  return z.string().refine(isDate, 'Informe a data.')
+}
+
+export function requiredTime() {
+  return z.string().refine(isTime, 'Informe a hora.')
 }
 
 export function requiredId() {
@@ -101,13 +101,4 @@ export function requiredOption<const Options extends readonly [string, ...string
   options: Options,
 ) {
   return z.string().pipe(z.enum(options, { error: SELECT_MESSAGE }))
-}
-
-export function optionalOption<const Options extends readonly [string, ...string[]]>(
-  options: Options,
-) {
-  return z
-    .string()
-    .transform((value) => toOptional(value, String))
-    .pipe(z.enum(options).optional())
 }
