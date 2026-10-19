@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.controllers.router import api_router
 from app.core.access_log import AccessLogMiddleware
 from app.core.error_handlers import register_error_handlers
+from app.core.unexpected_error import UnexpectedErrorMiddleware
 
 
 def create_app() -> FastAPI:
@@ -15,6 +16,8 @@ def create_app() -> FastAPI:
         redirect_slashes=False,
         strict_content_type=False,
     )
+    # O último adicionado é o mais externo: a falha inesperada vira JSON antes de passar pelo CORS.
+    app.add_middleware(UnexpectedErrorMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,

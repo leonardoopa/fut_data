@@ -63,6 +63,12 @@ def test_name_key_ignores_case_but_keeps_accents(first: str, second: str, same_k
     assert (name_key(first) == name_key(second)) is same_key
 
 
+def test_name_key_has_the_same_length_as_the_name() -> None:
+    name = "İstanbul " + "A" * 51
+
+    assert len(name_key(name)) == len(name) == 60
+
+
 def test_registration_is_allowed_up_to_the_twentieth_club() -> None:
     ensure_registration_allowed(club_count=19, name_taken=False, acronym_taken=False)
 

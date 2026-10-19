@@ -87,7 +87,8 @@ function saveFile(blob: Blob, fileName: string) {
   document.body.append(link)
   link.click()
   link.remove()
-  URL.revokeObjectURL(url)
+  // Revoked on the next task, after the browser has started the download.
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 async function download(path: string, query: QueryParams, fallbackName: string): Promise<string> {
