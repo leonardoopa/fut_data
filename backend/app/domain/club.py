@@ -64,8 +64,17 @@ def validate_acronym_for_name(acronym: str, name: str) -> None:
 
 
 def name_key(name: str) -> str:
-    """Chave da unicidade do nome (RN10): ignora maiúsculas e minúsculas, mas não os acentos."""
-    return name.lower()
+    """Chave da unicidade do nome (RN10): ignora maiúsculas e minúsculas, mas não os acentos.
+
+    Cada caractere vira um só caractere, para a chave caber na coluna do nome: o "İ" (U+0130),
+    cuja minúscula tem dois caracteres, fica como está.
+    """
+    return "".join(lower_keeping_length(character) for character in name)
+
+
+def lower_keeping_length(character: str) -> str:
+    lowered = character.lower()
+    return lowered if len(lowered) == 1 else character
 
 
 def ensure_registration_allowed(*, club_count: int, name_taken: bool, acronym_taken: bool) -> None:

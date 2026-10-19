@@ -39,7 +39,8 @@ class ClubService:
         )
         club = Club.from_registration(registration)
         self._clubs.add(club)
-        return club
+        # Recarrega com o elenco (vazio), para a resposta não consultar o banco fora do serviço.
+        return ensure_club_found(self._clubs.get_with_squad(club.id))
 
     def list_clubs(self, criteria: ClubListCriteria) -> list[Club]:
         return sort_clubs(self._clubs.list_with_squads(), criteria.sort)
