@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Link } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
 import { createClub, listClubs } from '../../api/clubs'
@@ -54,7 +55,6 @@ describe('ClubsPage', () => {
   it('lists the clubs in the order returned by the API, sorted by name by default', async () => {
     await renderPage()
 
-    expect(listClubs).toHaveBeenCalledOnce()
     expect(listClubs).toHaveBeenLastCalledWith('name')
     expect(clubNamesInOrder()).toEqual([
       `Ver clube ${RICH_CLUB.name}`,
@@ -108,6 +108,23 @@ describe('ClubsPage', () => {
     expect(await screen.findByText(RICH_CLUB.name)).toBeInTheDocument()
   })
 
+  it('fetches the clubs again when the page is opened from the menu', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<ClubsPage />, {
+      url: '/players',
+      path: '/clubs',
+      routes: { '/players': <Link to="/clubs">Clubes</Link> },
+    })
+    await waitFor(() => expect(listClubs).toHaveBeenCalledOnce())
+    vi.mocked(listClubs).mockRejectedValueOnce(new ApiError('Não foi possível conectar à API.', 0))
+
+    await user.click(await screen.findByRole('link', { name: 'Clubes' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Não foi possível conectar à API.')
+    expect(listClubs).toHaveBeenCalledTimes(2)
+  })
+
   it('validates the new club before sending it', async () => {
     const user = await renderPage()
 
@@ -146,6 +163,7 @@ describe('ClubsPage', () => {
     const created = makeClub({ id: 4, name: 'Gama Futebol Clube', acronym: 'GFC' })
     vi.mocked(createClub).mockResolvedValue(created)
     const user = await renderPage()
+    const loadsBeforeCreation = vi.mocked(listClubs).mock.calls.length
 
     await user.click(screen.getByRole('button', { name: 'Novo clube' }))
     const dialog = await fillClub(user, created.name, created.acronym)
@@ -156,6 +174,6 @@ describe('ClubsPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       'Clube criadoGama Futebol Clube (GFC) começa com 300,00 em caixa.',
     )
-    await waitFor(() => expect(listClubs).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(listClubs).toHaveBeenCalledTimes(loadsBeforeCreation + 1))
   })
 })

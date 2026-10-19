@@ -926,6 +926,7 @@ a {
 }
 
 .data-table__scroll {
+  position: relative;
   overflow-x: auto;
 }
 

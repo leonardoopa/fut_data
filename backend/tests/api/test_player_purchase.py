@@ -163,7 +163,9 @@ def test_cost_above_half_of_the_cash_is_409(client: TestClient, club_id: int) ->
     response = buy(client, player.id, club_id)
 
     assert response.status_code == 409
-    assert "passa de 50% do caixa" in response.json()["message"]
+    assert response.json() == {
+        "message": "O custo total (150,15) passa de 50% do caixa do clube (300,00)."
+    }
     assert_nothing_bought(player.id, club_id)
 
 
