@@ -40,6 +40,7 @@ export function ConfirmDialog({
       description={description}
       size="sm"
       onClose={onCancel}
+      isBusy={isPending}
       footer={
         <>
           <Button variant="secondary" onClick={onCancel} disabled={isPending}>
