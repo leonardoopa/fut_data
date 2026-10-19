@@ -147,6 +147,7 @@ export function PlayerCreateForm({ isPending, error, onSubmit, onCancel }: Playe
         }
         size="lg"
         onClose={onCancel}
+        isBusy={isPending}
         form={{ label: 'Cadastro de jogador', onSubmit: form.handleSubmit(onSubmit) }}
         footer={
           <>

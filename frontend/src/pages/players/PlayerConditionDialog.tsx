@@ -53,6 +53,7 @@ export function PlayerConditionDialog({
       title="Alterar condição física"
       description="A condição muda o desconto no valor de mercado, recalculado pela API ao salvar."
       onClose={onClose}
+      isBusy={isPending}
       form={{
         label: 'Alteração de condição',
         onSubmit: handleSubmit(({ condition }) => onSave(condition)),

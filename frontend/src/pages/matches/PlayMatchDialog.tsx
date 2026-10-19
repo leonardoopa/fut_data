@@ -37,6 +37,7 @@ export function PlayMatchDialog({ onClose }: { onClose: () => void }) {
       title="Nova partida"
       description="Escolha o mandante e o visitante. O placar sai dos atributos dos titulares, sem sorteio."
       onClose={onClose}
+      isBusy={play.isPending}
       form={{ label: 'Nova partida', onSubmit: handleSubmit((payload) => play.run(payload)) }}
       footer={
         <>
