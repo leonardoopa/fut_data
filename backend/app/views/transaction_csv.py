@@ -8,6 +8,7 @@ from decimal import Decimal
 from fastapi import Response
 
 from app.domain.brasilia_time import format_brasilia_datetime
+from app.domain.money import format_money
 from app.models import MarketTransaction
 
 HEADER = (
@@ -22,8 +23,6 @@ HEADER = (
 )
 SEPARATOR = ";"
 LINE_END = "\n"
-DECIMAL_POINT = "."
-DECIMAL_COMMA = ","
 MISSING_VALUE = ""
 
 
@@ -33,11 +32,11 @@ class CsvResponse(Response):
     media_type = "text/csv"
 
 
-def format_money(value: Decimal | None) -> str:
-    """Duas casas com vírgula decimal e `-` no negativo; valor nulo fica vazio."""
+def format_csv_money(value: Decimal | None) -> str:
+    """Valor em dinheiro no formato brasileiro; valor nulo fica vazio."""
     if value is None:
         return MISSING_VALUE
-    return f"{value:.2f}".replace(DECIMAL_POINT, DECIMAL_COMMA)
+    return format_money(value)
 
 
 def transaction_row(market_transaction: MarketTransaction) -> tuple[str, ...]:
@@ -45,11 +44,11 @@ def transaction_row(market_transaction: MarketTransaction) -> tuple[str, ...]:
         format_brasilia_datetime(market_transaction.created_at),
         market_transaction.type,
         market_transaction.player_name,
-        format_money(market_transaction.value),
-        format_money(market_transaction.fee),
-        format_money(market_transaction.penalty),
-        format_money(market_transaction.profit),
-        format_money(market_transaction.cash_change),
+        format_csv_money(market_transaction.value),
+        format_csv_money(market_transaction.fee),
+        format_csv_money(market_transaction.penalty),
+        format_csv_money(market_transaction.profit),
+        format_csv_money(market_transaction.cash_change),
     )
 
 
