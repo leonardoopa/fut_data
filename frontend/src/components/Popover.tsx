@@ -49,10 +49,11 @@ export function Popover({
   const panelRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState<PanelPosition>()
 
+  const isOpen = position !== undefined
   const close = useCallback(() => setPosition(undefined), [])
 
   useEffect(() => {
-    if (!position) return
+    if (!isOpen) return
     panelRef.current
       ?.querySelector<HTMLElement>('[role^="menuitem"]:not([disabled]), input, select, button')
       ?.focus()
@@ -71,22 +72,24 @@ export function Popover({
       event.stopPropagation()
       close()
     }
-    function closeOnScroll(event: Event) {
-      if (!isInside(event.target)) close()
+    // Rolar a página ou a tabela, ou abrir o teclado do celular, move o botão; o painel o acompanha.
+    function followButton() {
+      const rect = buttonRef.current?.getBoundingClientRect()
+      if (rect) setPosition(positionFor(rect))
     }
     document.addEventListener('mousedown', closeOnOutsidePress)
     document.addEventListener('keydown', closeOnEscape, true)
-    window.addEventListener('scroll', closeOnScroll, true)
-    window.addEventListener('resize', close)
+    window.addEventListener('scroll', followButton, true)
+    window.addEventListener('resize', followButton)
     const button = buttonRef.current
     return () => {
       if (document.activeElement === document.body) button?.focus()
       document.removeEventListener('mousedown', closeOnOutsidePress)
       document.removeEventListener('keydown', closeOnEscape, true)
-      window.removeEventListener('scroll', closeOnScroll, true)
-      window.removeEventListener('resize', close)
+      window.removeEventListener('scroll', followButton, true)
+      window.removeEventListener('resize', followButton)
     }
-  }, [position, close])
+  }, [isOpen, close])
 
   function toggle() {
     const rect = buttonRef.current?.getBoundingClientRect()
@@ -105,8 +108,8 @@ export function Popover({
         className={classes}
         aria-label={ariaLabel}
         aria-haspopup="true"
-        aria-expanded={Boolean(position)}
-        aria-controls={position ? panelId : undefined}
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? panelId : undefined}
         aria-describedby={describedBy}
         disabled={disabled}
         onClick={toggle}
