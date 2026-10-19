@@ -67,6 +67,10 @@ class PlayerService:
         if condition == current:
             return player
         ensure_condition_change_allowed(current, condition)
+        if leaves_lineup(condition) and player.club_id is not None:
+            # Trava o clube depois do jogador, na mesma ordem da compra e da venda: uma partida
+            # em andamento, que já travou o clube, termina antes de o titular sair da escalação.
+            self._clubs.lock(player.club_id)
         player.condition = condition
         self._players.save(player)
         if leaves_lineup(condition):
