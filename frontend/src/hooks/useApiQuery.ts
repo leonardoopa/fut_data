@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { getErrorMessage } from '../api/client'
 import { useRefresh } from './useRefresh'
 
@@ -18,6 +18,7 @@ export interface ApiQuery<T> {
   error: string | undefined
   isLoading: boolean
   reload: () => void
+  revalidate: () => void
 }
 
 function isSameKey<T>(result: QueryResult<T> | undefined, key: QueryKey<T>): boolean {
@@ -32,6 +33,11 @@ export function useApiQuery<T>(fetcher: (() => Promise<T>) | null): ApiQuery<T> 
   const { version: refreshVersion } = useRefresh()
   const [version, setVersion] = useState(0)
   const [result, setResult] = useState<QueryResult<T>>()
+  const hasResult = useRef(false)
+
+  useEffect(() => {
+    hasResult.current = result !== undefined
+  }, [result])
 
   useEffect(() => {
     if (!fetcher) return
@@ -47,6 +53,10 @@ export function useApiQuery<T>(fetcher: (() => Promise<T>) | null): ApiQuery<T> 
   }, [fetcher, version, refreshVersion])
 
   const reload = useCallback(() => setVersion((current) => current + 1), [])
+  // Busca de novo só o que já foi carregado; na primeira carga a busca inicial já está em curso.
+  const revalidate = useCallback(() => {
+    if (hasResult.current) reload()
+  }, [reload])
   const isLoading = fetcher !== null && !isSameKey(result, { fetcher, version, refreshVersion })
 
   return {
@@ -54,5 +64,6 @@ export function useApiQuery<T>(fetcher: (() => Promise<T>) | null): ApiQuery<T> 
     error: isLoading ? undefined : result?.error,
     isLoading,
     reload,
+    revalidate,
   }
 }

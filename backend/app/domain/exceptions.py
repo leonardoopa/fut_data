@@ -11,6 +11,8 @@ do pedido que dependem do momento (400) e por fim as regras de negócio do estad
 
 from decimal import Decimal
 
+from app.domain.money import format_money
+
 
 class DomainError(Exception):
     """Erro esperado, com mensagem pronta para o cliente."""
@@ -157,7 +159,10 @@ class SquadFullError(BusinessRuleError):
 
 class CashLimitExceededError(BusinessRuleError):
     def __init__(self, total_cost: Decimal, cash: Decimal) -> None:
-        super().__init__(f"O custo total ({total_cost}) passa de 50% do caixa do clube ({cash}).")
+        super().__init__(
+            f"O custo total ({format_money(total_cost)}) passa de 50% do caixa "
+            f"do clube ({format_money(cash)})."
+        )
 
 
 class FreePlayerSaleError(BusinessRuleError):

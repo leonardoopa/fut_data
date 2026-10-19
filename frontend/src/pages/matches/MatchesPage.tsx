@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId } from 'react'
 import { Button } from '../../components/Button'
 import { Card } from '../../components/Card'
 import { PageHeader } from '../../components/PageHeader'
@@ -12,10 +12,15 @@ import './matches.css'
 
 export function MatchesPage() {
   const { matches } = useLeague()
+  const { revalidate } = matches
   const [isPlaying, setIsPlaying] = useIntentToggle('playMatch')
   const lastMatchTitleId = useId()
   const lastMatch = matches.data?.[0]
-  const hasNoMatches = matches.data?.length === 0
+  const hasNoMatches = !matches.isLoading && matches.data?.length === 0
+
+  useEffect(() => {
+    revalidate()
+  }, [revalidate])
 
   const emptyLeague: StateContent = {
     icon: 'swords',
