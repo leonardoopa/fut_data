@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Link } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
 import { listClubs } from '../../api/clubs'
@@ -209,5 +210,22 @@ describe('MatchesPage history', () => {
 
     await user.click(within(alert).getByRole('button', { name: 'Tentar de novo' }))
     expect(await historyTable().findByText('0 × 0')).toBeInTheDocument()
+  })
+
+  it('fetches the matches again when the page is opened from the menu', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<MatchesPage />, {
+      url: '/clubs',
+      path: '/matches',
+      routes: { '/clubs': <Link to="/matches">Partidas</Link> },
+    })
+    await waitFor(() => expect(listMatches).toHaveBeenCalledOnce())
+    vi.mocked(listMatches).mockRejectedValueOnce(new ApiError('Falha ao listar partidas.', 500))
+
+    await user.click(await screen.findByRole('link', { name: 'Partidas' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Falha ao listar partidas.')
+    expect(listMatches).toHaveBeenCalledTimes(2)
   })
 })

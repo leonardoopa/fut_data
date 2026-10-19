@@ -2,16 +2,12 @@ import { useCallback } from 'react'
 import { getClub, listClubs } from '../api/clubs'
 import type { ClubSort } from '../api/types'
 import { useApiQuery } from './useApiQuery'
-import { useLeague } from './useLeague'
 
-const LEAGUE_CLUB_SORT: ClubSort = 'name'
-
+// A lista da página busca de novo a cada visita; a lista da liga (menu lateral) continua
+// disponível mesmo se essa busca falhar, para o usuário chegar à página de cada clube.
 export function useClubs(sort: ClubSort) {
-  const league = useLeague()
-  const usesLeagueList = sort === LEAGUE_CLUB_SORT
   const fetchClubs = useCallback(() => listClubs(sort), [sort])
-  const sorted = useApiQuery(usesLeagueList ? null : fetchClubs)
-  return usesLeagueList ? league.clubs : sorted
+  return useApiQuery(fetchClubs)
 }
 
 export function useClubDetails(clubId: number) {
