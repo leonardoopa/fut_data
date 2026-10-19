@@ -35,6 +35,7 @@ export function ClubCreateDialog({ isPending, error, onCreate, onClose }: ClubCr
       description="Informe o nome e a sigla do clube."
       size="sm"
       onClose={onClose}
+      isBusy={isPending}
       form={{ label: 'Cadastro de clube', onSubmit: handleSubmit(onCreate) }}
       footer={
         <>

@@ -23,6 +23,11 @@ type ClubTab = 'squad' | 'lineup' | 'history'
 
 export function ClubPage() {
   const clubId = Number(useParams().clubId)
+  // The key resets the tabs and the history filters when the sidebar switches clubs.
+  return <ClubDetails key={clubId} clubId={clubId} />
+}
+
+function ClubDetails({ clubId }: { clubId: number }) {
   const navigate = useNavigate()
   const club = useClubDetails(clubId)
   const history = useClubTransactions(clubId)

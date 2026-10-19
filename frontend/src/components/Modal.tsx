@@ -19,6 +19,8 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg'
   variant?: 'dialog' | 'drawer'
   form?: ModalForm
+  /** Keeps the dialog open while a request is pending, so its result is not lost. */
+  isBusy?: boolean
   children: ReactNode
 }
 
@@ -31,6 +33,7 @@ export function Modal({
   size = 'md',
   variant = 'dialog',
   form,
+  isBusy = false,
   children,
 }: ModalProps) {
   const titleId = useId()
@@ -45,11 +48,11 @@ export function Modal({
 
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape' && !isBusy) onClose()
     }
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [onClose])
+  }, [onClose, isBusy])
 
   const content = (
     <>
@@ -81,7 +84,13 @@ export function Modal({
               </p>
             )}
           </div>
-          <button type="button" className="modal__close" aria-label="Fechar" onClick={onClose}>
+          <button
+            type="button"
+            className="modal__close"
+            aria-label="Fechar"
+            disabled={isBusy}
+            onClick={onClose}
+          >
             <Icon name="x" />
           </button>
         </header>

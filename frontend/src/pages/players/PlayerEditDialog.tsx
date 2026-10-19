@@ -41,6 +41,7 @@ export function PlayerEditDialog({
         title="Editar jogador"
         description="Edite nome, posição, idade e agilidade. Os demais dados não mudam."
         onClose={onClose}
+        isBusy={isPending}
         form={{ label: 'Edição de jogador', onSubmit: form.handleSubmit(onSave) }}
         footer={
           <>

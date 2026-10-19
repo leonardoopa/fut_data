@@ -129,6 +129,7 @@ export function PlayerPurchaseDialog({
       title="Comprar jogador"
       description="Escolha o clube comprador e até quando vai a fidelidade do contrato."
       onClose={onClose}
+      isBusy={isPending}
       form={{ label: 'Compra de jogador', onSubmit: handleSubmit(buy) }}
       footer={
         <>

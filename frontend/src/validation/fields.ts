@@ -15,6 +15,16 @@ function integerRangeMessage(min: number, max: number): string {
   return `Informe um número inteiro de ${min} a ${max}.`
 }
 
+/** V4: repeated spaces count as one before the length is checked. */
+function collapseSpaces(value: string): string {
+  return value.replace(/ +/g, ' ')
+}
+
+function hasLengthBetween(value: string, min: number, max: number): boolean {
+  const length = collapseSpaces(value).length
+  return length >= min && length <= max
+}
+
 function toOptional<T>(value: string, parse: (value: string) => T): T | undefined {
   return value === '' ? undefined : parse(value)
 }
@@ -25,7 +35,7 @@ export function requiredText(min: number, max: number) {
     .trim()
     .min(1, REQUIRED_MESSAGE)
     .refine(
-      (value) => value === '' || (value.length >= min && value.length <= max),
+      (value) => value === '' || hasLengthBetween(value, min, max),
       `Use de ${min} a ${max} caracteres.`,
     )
 }
@@ -57,7 +67,7 @@ export function optionalText(min: number, max: number) {
     .string()
     .trim()
     .refine(
-      (value) => value === '' || (value.length >= min && value.length <= max),
+      (value) => value === '' || hasLengthBetween(value, min, max),
       `Use de ${min} a ${max} caracteres.`,
     )
     .transform((value) => toOptional(value, String))

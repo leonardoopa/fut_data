@@ -84,15 +84,26 @@ export function buildPlayerColumns({
       render: (player) => (
         <span className="row-actions">
           {player.club_id === null && (
-            <Button
-              variant="secondary"
-              size="sm"
-              icon="cart"
-              aria-label={`Comprar ${player.name}`}
-              onClick={() => actions.onBuy(player)}
-            >
-              Comprar
-            </Button>
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                icon="cart"
+                aria-label={`Comprar ${player.name}`}
+                onClick={() => actions.onBuy(player)}
+              >
+                Comprar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon="trash"
+                aria-label={`Excluir ${player.name}`}
+                onClick={() => actions.onDelete(player)}
+              >
+                Excluir
+              </Button>
+            </>
           )}
           <PlayerRowMenu player={player} {...actions} />
         </span>
