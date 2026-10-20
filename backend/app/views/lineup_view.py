@@ -8,7 +8,7 @@ from app.views.player_view import PlayerView
 
 
 class LineupView(BaseModel):
-    """Resposta de GET e PUT /clubs/{id}/lineup: titulares na ordem do elenco (RN19)."""
+    """Response of GET and PUT /clubs/{id}/lineup: starters in squad order (RN19)."""
 
     club_id: int
     formation: Formation | None

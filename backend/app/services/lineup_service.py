@@ -15,8 +15,6 @@ from app.services.lookups import ensure_club_exists, ensure_club_found, ensure_p
 
 @dataclass(frozen=True)
 class Lineup:
-    """Escalação do clube, com os titulares na ordem do elenco (RN11)."""
-
     club_id: int
     formation: Formation | None
     players: list[Player]
@@ -27,11 +25,7 @@ class Lineup:
 
 
 class LineupService:
-    """Escalação dos clubes (RN19).
-
-    A substituição trava os jogadores e depois o clube, a mesma ordem da compra e da venda:
-    as regras são conferidas e gravadas sobre o mesmo estado, e nada é gravado numa recusa.
-    """
+    """Locks players, then the club, in the same order as buy and sell."""
 
     def __init__(
         self, players: PlayerRepository, clubs: ClubRepository, lineups: LineupRepository
@@ -42,7 +36,6 @@ class LineupService:
 
     @transaction.atomic
     def replace(self, club_id: int, selection: LineupSelection) -> Lineup:
-        """Substitui a escalação inteira e grava a formação numa única operação."""
         ensure_club_exists(self._clubs, club_id)
         starters = ensure_players_found(
             self._players.lock_active_many(selection.player_ids), selection.player_ids
@@ -55,7 +48,6 @@ class LineupService:
         return Lineup(club_id=club.id, formation=selection.formation, players=sort_squad(starters))
 
     def get(self, club_id: int) -> Lineup:
-        """Sem escalação, a formação é nula; incompleta, mantém a formação salva."""
         club = ensure_club_found(self._clubs.get(club_id))
         starters = self._lineups.starters_of(club.id)
         return Lineup(club_id=club.id, formation=club.formation, players=sort_squad(starters))
