@@ -30,7 +30,11 @@ DuelSideSpec = tuple[str, str, int]
 AGUIAS_STARTERS: tuple[StarterSpec, ...] = (
     ("Rui Prado", "GOL", {"defending": 77}),
     ("Téo Brandão", "ZAG", {"defending": 84}),
-    ("Davi Lins", "LAT", {"dribbling": 74, "defending": 66, "condition": "MAL_CONDICIONADO"}),
+    (
+        "Davi Lins",
+        "LAT",
+        {"dribbling": 74, "defending": 66, "condition": "MAL_CONDICIONADO"},
+    ),
     ("Lauro Neves", "MEI", {"passing": 82}),
     ("Otto Rangel", "ATA", {"shooting": 75}),
 )
@@ -56,7 +60,9 @@ def documented_club(
 
 
 @pytest.fixture
-def documented_clubs(client: TestClient, clock: FixedClock) -> tuple[Club, Club, dict[str, Player]]:
+def documented_clubs(
+    client: TestClient, clock: FixedClock
+) -> tuple[Club, Club, dict[str, Player]]:
     clock.moment = PLAYED_AT
     aguias, home_starters = documented_club(client, "Águias FC", "AGU", AGUIAS_STARTERS)
     delta, away_starters = documented_club(client, "Delta FC", "DEL", DELTA_STARTERS)
@@ -112,16 +118,62 @@ def test_documented_match_is_played_and_recorded(
     assert body == {
         "id": body["id"],
         "played_at": "2026-11-12T15:00:00-03:00",
-        "home": {"club_id": aguias.id, "club_name": "Águias FC", "formation": "2-1-1", "goals": 1},
-        "away": {"club_id": delta.id, "club_name": "Delta FC", "formation": "2-1-1", "goals": 2},
+        "home": {
+            "club_id": aguias.id,
+            "club_name": "Águias FC",
+            "formation": "2-1-1",
+            "goals": 1,
+        },
+        "away": {
+            "club_id": delta.id,
+            "club_name": "Delta FC",
+            "formation": "2-1-1",
+            "goals": 2,
+        },
         "result": "VISITANTE",
         "duels": [
-            duel(1, aguias, ("Otto Rangel", "shooting", 75), ("Ivo Teles", "defending", 72), True),
-            duel(2, aguias, ("Lauro Neves", "passing", 82), ("Hugo Vaz", "defending", 84), False),
-            duel(3, aguias, ("Davi Lins", "dribbling", 63), ("Lino Matos", "defending", 63), False),
-            duel(4, delta, ("Ugo Falcão", "shooting", 81), ("Rui Prado", "defending", 77), True),
-            duel(5, delta, ("Nei Soares", "passing", 70), ("Téo Brandão", "defending", 84), False),
-            duel(6, delta, ("Lino Matos", "dribbling", 79), ("Davi Lins", "defending", 56), True),
+            duel(
+                1,
+                aguias,
+                ("Otto Rangel", "shooting", 75),
+                ("Ivo Teles", "defending", 72),
+                True,
+            ),
+            duel(
+                2,
+                aguias,
+                ("Lauro Neves", "passing", 82),
+                ("Hugo Vaz", "defending", 84),
+                False,
+            ),
+            duel(
+                3,
+                aguias,
+                ("Davi Lins", "dribbling", 63),
+                ("Lino Matos", "defending", 63),
+                False,
+            ),
+            duel(
+                4,
+                delta,
+                ("Ugo Falcão", "shooting", 81),
+                ("Rui Prado", "defending", 77),
+                True,
+            ),
+            duel(
+                5,
+                delta,
+                ("Nei Soares", "passing", 70),
+                ("Téo Brandão", "defending", 84),
+                False,
+            ),
+            duel(
+                6,
+                delta,
+                ("Lino Matos", "dribbling", 79),
+                ("Davi Lins", "defending", 56),
+                True,
+            ),
         ],
     }
     assert client.get(match_url(body["id"])).json() == body
@@ -151,7 +203,9 @@ def test_match_keeps_the_data_of_the_moment(
     otto = starters["Otto Rangel"]
     profile = {"name": "Otto Novo", "position": "ATA", "agility": 50, "age": 25}
     client.put(player_url(otto.id), json=profile)
-    client.patch(f"{player_url(otto.id)}/condition", json={"condition": "MAL_CONDICIONADO"})
+    client.patch(
+        f"{player_url(otto.id)}/condition", json={"condition": "MAL_CONDICIONADO"}
+    )
 
     attacker = client.get(match_url(match_id)).json()["duels"][0]["attacker"]
 
@@ -211,7 +265,9 @@ def test_same_club_on_both_sides_is_400(client: TestClient) -> None:
 
 
 @pytest.mark.parametrize("missing_side", ["home", "away"])
-def test_missing_club_is_404_and_writes_nothing(client: TestClient, missing_side: str) -> None:
+def test_missing_club_is_404_and_writes_nothing(
+    client: TestClient, missing_side: str
+) -> None:
     club = ready_club(client, "AGU")
     sides = {"home": club.id, "away": club.id} | {missing_side: 999999}
 
@@ -244,7 +300,10 @@ def test_lineup_incomplete_after_a_sale_blocks_the_match(
     away_id = register_club(client, name="Delta FC", acronym="DEL")["id"]
     starters = buy_squad(client, away_id, FORMATION_POSITIONS["2-1-1"])
     assert (
-        put_lineup(client, away_id, "2-1-1", [player.id for player in starters]).status_code == 200
+        put_lineup(
+            client, away_id, "2-1-1", [player.id for player in starters]
+        ).status_code
+        == 200
     )
     assert sell(client, starters[0].id).status_code == 200
 
@@ -283,7 +342,9 @@ def list_matches(client: TestClient, **params: str) -> list[dict[str, Any]]:
 def test_matches_are_listed_most_recent_first_without_duels(
     client: TestClient, clock: FixedClock
 ) -> None:
-    first, second, third = (ready_club(client, acronym) for acronym in ("AGU", "DEL", "GAM"))
+    first, second, third = (
+        ready_club(client, acronym) for acronym in ("AGU", "DEL", "GAM")
+    )
     clock.moment = PLAYED_AT
     earliest = played(client, first, second)
     same_moment = [played(client, second, third), played(client, third, first)]
@@ -304,7 +365,9 @@ def test_matches_are_listed_most_recent_first_without_duels(
 def test_matches_filtered_by_club_include_home_and_away(
     client: TestClient, clock: FixedClock
 ) -> None:
-    first, second, third = (ready_club(client, acronym) for acronym in ("AGU", "DEL", "GAM"))
+    first, second, third = (
+        ready_club(client, acronym) for acronym in ("AGU", "DEL", "GAM")
+    )
     as_home, as_away = played(client, first, second), played(client, third, first)
     played(client, second, third)
 

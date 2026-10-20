@@ -93,7 +93,9 @@ class Player(models.Model):
 
     @property
     def attributes(self) -> PlayerAttributes:
-        return PlayerAttributes(**{field: getattr(self, field) for field in ATTRIBUTE_FIELDS})
+        return PlayerAttributes(
+            **{field: getattr(self, field) for field in ATTRIBUTE_FIELDS}
+        )
 
     @property
     def overall(self) -> int:

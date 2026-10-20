@@ -39,7 +39,9 @@ VETERAN_MIN_AGE = 32
 MAXIMUM_DISCOUNT = Decimal(-40)
 
 
-def calculate_base_value(overall: int, potential: int, registration_age: int) -> Decimal:
+def calculate_base_value(
+    overall: int, potential: int, registration_age: int
+) -> Decimal:
     overall_part = sum((band.value_for(overall) for band in OVERALL_BANDS), Decimal(0))
     if registration_age <= YOUNG_PROSPECT_MAX_AGE:
         overall_part = percent_of(overall_part, 100 + potential - overall)

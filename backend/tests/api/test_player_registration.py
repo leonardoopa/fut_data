@@ -51,7 +51,9 @@ def registered_meia_lua(player_id: int) -> dict[str, Any]:
     }
 
 
-def test_registration_returns_201_with_location_and_calculated_values(client: TestClient) -> None:
+def test_registration_returns_201_with_location_and_calculated_values(
+    client: TestClient,
+) -> None:
     response = client.post(PLAYERS_URL, json=MEIA_LUA)
 
     body = response.json()
@@ -62,7 +64,9 @@ def test_registration_returns_201_with_location_and_calculated_values(client: Te
     assert list(body) == RESPONSE_FIELDS
 
 
-def test_registration_stores_a_free_apt_player_with_the_base_value(client: TestClient) -> None:
+def test_registration_stores_a_free_apt_player_with_the_base_value(
+    client: TestClient,
+) -> None:
     player = Player.objects.get(pk=register_player(client)["id"])
 
     assert player.base_value == Decimal("40.00")
@@ -71,7 +75,9 @@ def test_registration_stores_a_free_apt_player_with_the_base_value(client: TestC
     assert player.deleted_at is None
 
 
-def test_registration_ignores_fields_controlled_by_the_system(client: TestClient) -> None:
+def test_registration_ignores_fields_controlled_by_the_system(
+    client: TestClient,
+) -> None:
     body = register_player(
         client,
         id=999,
@@ -105,7 +111,11 @@ def test_young_prospect_base_value_and_market_value_follow_rn06_and_rn04(
         potential=84,
     )
 
-    assert (body["overall"], body["base_value"], body["market_value"]) == (70, 34.2, 37.62)
+    assert (body["overall"], body["base_value"], body["market_value"]) == (
+        70,
+        34.2,
+        37.62,
+    )
 
 
 @pytest.mark.parametrize(
@@ -118,7 +128,9 @@ def test_young_prospect_base_value_and_market_value_follow_rn06_and_rn04(
         {"agility": 85.0},
     ],
 )
-def test_values_on_the_limits_are_accepted(client: TestClient, changes: dict[str, Any]) -> None:
+def test_values_on_the_limits_are_accepted(
+    client: TestClient, changes: dict[str, Any]
+) -> None:
     assert client.post(PLAYERS_URL, json={**MEIA_LUA, **changes}).status_code == 201
 
 
@@ -189,7 +201,9 @@ def test_field_sent_with_another_name_counts_as_missing(client: TestClient) -> N
 
 
 @pytest.mark.parametrize("content", ["[]", '"x"', "10", '{"name": '])
-def test_body_that_is_not_a_json_object_is_refused(client: TestClient, content: str) -> None:
+def test_body_that_is_not_a_json_object_is_refused(
+    client: TestClient, content: str
+) -> None:
     response = client.post(
         PLAYERS_URL, content=content, headers={"Content-Type": "application/json"}
     )
@@ -199,7 +213,9 @@ def test_body_that_is_not_a_json_object_is_refused(client: TestClient, content: 
     assert not Player.objects.exists()
 
 
-def test_get_returns_the_player_with_overall_and_market_value(client: TestClient) -> None:
+def test_get_returns_the_player_with_overall_and_market_value(
+    client: TestClient,
+) -> None:
     player_id = register_player(client)["id"]
 
     response = client.get(player_url(player_id), params={"sort": "ignored"})

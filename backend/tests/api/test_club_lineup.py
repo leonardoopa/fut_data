@@ -59,14 +59,20 @@ def test_lineup_is_saved_with_the_starters_in_squad_order(
 
     assert response.status_code == 200
     body = response.json()
-    assert (body["club_id"], body["formation"], body["complete"]) == (club.id, "2-1-1", True)
+    assert (body["club_id"], body["formation"], body["complete"]) == (
+        club.id,
+        "2-1-1",
+        True,
+    )
     assert [player["id"] for player in body["players"]] == ids(squad)
     assert body["players"][0] == client.get(player_url(squad[0].id)).json()
     assert lineup_state(club.id) == ("2-1-1", set(ids(squad)))
     assert client.get(lineup_url(club.id)).json() == body
 
 
-def test_new_lineup_replaces_the_whole_previous_one(client: TestClient, club: Club) -> None:
+def test_new_lineup_replaces_the_whole_previous_one(
+    client: TestClient, club: Club
+) -> None:
     first = sign_squad(club, TWO_ONE_ONE)
     field_lineup(client, club, "2-1-1", first)
     reserves = [insert_player(f"Reserva {letter}", position="ATA") for letter in "AB"]
@@ -80,7 +86,9 @@ def test_new_lineup_replaces_the_whole_previous_one(client: TestClient, club: Cl
     assert lineup_state(club.id) == ("2-2", set(ids(second)))
 
 
-def test_unfit_player_can_start(client: TestClient, club: Club, squad: list[Player]) -> None:
+def test_unfit_player_can_start(
+    client: TestClient, club: Club, squad: list[Player]
+) -> None:
     Player.objects.filter(pk=squad[1].id).update(condition="MAL_CONDICIONADO")
 
     response = put_lineup(client, club.id, "2-1-1", ids(squad))
@@ -160,7 +168,11 @@ VALID_IDS = [1, 2, 3, 4, 5]
     ],
 )
 def test_invalid_body_is_400_and_writes_nothing(
-    client: TestClient, club: Club, squad: list[Player], body: dict[str, Any], field: str
+    client: TestClient,
+    club: Club,
+    squad: list[Player],
+    body: dict[str, Any],
+    field: str,
 ) -> None:
     response = client.put(lineup_url(club.id), json=body)
 
@@ -170,14 +182,18 @@ def test_invalid_body_is_400_and_writes_nothing(
 
 
 @pytest.mark.parametrize("body", [[], "x", 10])
-def test_body_that_is_not_an_object_is_400(client: TestClient, club: Club, body: Any) -> None:
+def test_body_that_is_not_an_object_is_400(
+    client: TestClient, club: Club, body: Any
+) -> None:
     response = client.put(lineup_url(club.id), json=body)
 
     assert response.status_code == 400
     assert response.json()["message"]
 
 
-def test_repeated_ids_are_400(client: TestClient, club: Club, squad: list[Player]) -> None:
+def test_repeated_ids_are_400(
+    client: TestClient, club: Club, squad: list[Player]
+) -> None:
     response = put_lineup(client, club.id, "2-1-1", [*ids(squad)[:4], squad[0].id])
 
     assert response.status_code == 400
@@ -185,8 +201,12 @@ def test_repeated_ids_are_400(client: TestClient, club: Club, squad: list[Player
     assert lineup_state(club.id) == (None, set())
 
 
-def test_integral_float_id_is_accepted(client: TestClient, club: Club, squad: list[Player]) -> None:
-    response = put_lineup(client, club.id, "2-1-1", [float(player_id) for player_id in ids(squad)])
+def test_integral_float_id_is_accepted(
+    client: TestClient, club: Club, squad: list[Player]
+) -> None:
+    response = put_lineup(
+        client, club.id, "2-1-1", [float(player_id) for player_id in ids(squad)]
+    )
 
     assert response.status_code == 200
 
@@ -202,7 +222,10 @@ def test_missing_or_deleted_player_is_404_and_writes_nothing(
     ]
 
     assert [response.status_code for response in responses] == [404, 404]
-    assert all(response.json() == {"message": "Jogador não encontrado."} for response in responses)
+    assert all(
+        response.json() == {"message": "Jogador não encontrado."}
+        for response in responses
+    )
     assert lineup_state(club.id) == ("2-1-1", set(ids(squad)))
 
 
@@ -224,7 +247,9 @@ def test_player_outside_the_squad_is_409(
     assert lineup_state(club.id) == ("2-1-1", set(ids(squad)))
 
 
-def test_sick_player_is_409(client: TestClient, club: Club, squad: list[Player]) -> None:
+def test_sick_player_is_409(
+    client: TestClient, club: Club, squad: list[Player]
+) -> None:
     Player.objects.filter(pk=squad[4].id).update(condition="DOENTE")
 
     response = put_lineup(client, club.id, "2-1-1", ids(squad))

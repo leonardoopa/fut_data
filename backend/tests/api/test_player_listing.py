@@ -51,11 +51,15 @@ def test_specification_example_lists_meia_lua_after_the_condition_change(
     client: TestClient,
 ) -> None:
     meia_lua_id = register_player(client)["id"]
-    client.patch(f"{player_url(meia_lua_id)}/condition", json={"condition": "MAL_CONDICIONADO"})
+    client.patch(
+        f"{player_url(meia_lua_id)}/condition", json={"condition": "MAL_CONDICIONADO"}
+    )
     register_player(client, name="Lua Nova", position="ATA")
     register_player(client, name="Meia Sol")
 
-    body = list_players(client, search="lua", position="MEI", sort="value_desc", page=1, limit=10)
+    body = list_players(
+        client, search="lua", position="MEI", sort="value_desc", page=1, limit=10
+    )
 
     assert body["meta"] == {"page": 1, "limit": 10, "total_items": 1, "total_pages": 1}
     assert body["data"] == [client.get(player_url(meia_lua_id)).json()]
@@ -102,7 +106,9 @@ def test_pagination_follows_the_specification_table(
 ) -> None:
     body = list_players(client, limit=limit, page=page)
 
-    assert [player["name"] for player in body["data"]] == twenty_three_players[first:last]
+    assert [player["name"] for player in body["data"]] == twenty_three_players[
+        first:last
+    ]
     assert body["meta"] == {
         "page": page,
         "limit": limit,
@@ -123,34 +129,93 @@ def test_default_page_and_limit_are_1_and_10(
 @pytest.mark.parametrize(
     ("sort", "expected"),
     [
-        ("name", ["Ana Lima", "Bruno Dias", "Caio Nunes", "Davi Rocha", "Edu Prado", "Fábio Reis"]),
+        (
+            "name",
+            [
+                "Ana Lima",
+                "Bruno Dias",
+                "Caio Nunes",
+                "Davi Rocha",
+                "Edu Prado",
+                "Fábio Reis",
+            ],
+        ),
         (
             "value_asc",
-            ["Fábio Reis", "Davi Rocha", "Bruno Dias", "Ana Lima", "Edu Prado", "Caio Nunes"],
+            [
+                "Fábio Reis",
+                "Davi Rocha",
+                "Bruno Dias",
+                "Ana Lima",
+                "Edu Prado",
+                "Caio Nunes",
+            ],
         ),
         (
             "value_desc",
-            ["Caio Nunes", "Edu Prado", "Ana Lima", "Bruno Dias", "Davi Rocha", "Fábio Reis"],
+            [
+                "Caio Nunes",
+                "Edu Prado",
+                "Ana Lima",
+                "Bruno Dias",
+                "Davi Rocha",
+                "Fábio Reis",
+            ],
         ),
         (
             "age_asc",
-            ["Caio Nunes", "Ana Lima", "Edu Prado", "Davi Rocha", "Fábio Reis", "Bruno Dias"],
+            [
+                "Caio Nunes",
+                "Ana Lima",
+                "Edu Prado",
+                "Davi Rocha",
+                "Fábio Reis",
+                "Bruno Dias",
+            ],
         ),
         (
             "age_desc",
-            ["Bruno Dias", "Fábio Reis", "Davi Rocha", "Ana Lima", "Edu Prado", "Caio Nunes"],
+            [
+                "Bruno Dias",
+                "Fábio Reis",
+                "Davi Rocha",
+                "Ana Lima",
+                "Edu Prado",
+                "Caio Nunes",
+            ],
         ),
         (
             "position",
-            ["Bruno Dias", "Ana Lima", "Edu Prado", "Caio Nunes", "Fábio Reis", "Davi Rocha"],
+            [
+                "Bruno Dias",
+                "Ana Lima",
+                "Edu Prado",
+                "Caio Nunes",
+                "Fábio Reis",
+                "Davi Rocha",
+            ],
         ),
         (
             "position,value_asc",
-            ["Bruno Dias", "Ana Lima", "Edu Prado", "Fábio Reis", "Caio Nunes", "Davi Rocha"],
+            [
+                "Bruno Dias",
+                "Ana Lima",
+                "Edu Prado",
+                "Fábio Reis",
+                "Caio Nunes",
+                "Davi Rocha",
+            ],
         ),
         (
             "age_asc,value_desc",
-            ["Caio Nunes", "Edu Prado", "Ana Lima", "Davi Rocha", "Fábio Reis", "Bruno Dias"],
+            [
+                "Caio Nunes",
+                "Edu Prado",
+                "Ana Lima",
+                "Davi Rocha",
+                "Fábio Reis",
+                "Bruno Dias",
+            ],
         ),
     ],
 )
@@ -163,7 +228,13 @@ def test_each_sort_criterion_and_their_combination(
 def test_alphabetical_order_ignores_case_and_accents_and_puts_space_before_hyphen(
     client: TestClient,
 ) -> None:
-    for name in ("gama Reis", "Épsilon Dias", "Delta Melo", "Ana-Maria Lima", "Ana Lima"):
+    for name in (
+        "gama Reis",
+        "Épsilon Dias",
+        "Delta Melo",
+        "Ana-Maria Lima",
+        "Ana Lima",
+    ):
         insert_player(name)
 
     assert listed_names(client) == [
@@ -221,7 +292,9 @@ def test_filters_by_position_and_by_condition(client: TestClient) -> None:
     assert listed_names(client, position="GOL", condition="DOENTE") == ["Ana Lima"]
 
 
-def test_filters_free_players_players_with_club_and_a_club_squad(client: TestClient) -> None:
+def test_filters_free_players_players_with_club_and_a_club_squad(
+    client: TestClient,
+) -> None:
     eagles, lions = create_club("AGU"), create_club("LEO")
     insert_player("Ana Lima", club=eagles)
     insert_player("Bruno Dias", club=lions)
@@ -292,7 +365,9 @@ def test_filters_search_sort_and_pagination_combine(client: TestClient) -> None:
     insert_player("Bia Lima", position="MEI", age=27, base_value=Decimal("35.00"))
     insert_player("Caio Lima", position="MEI", age=29, base_value=Decimal("20.00"))
     insert_player("Davi Lima", position="ATA", age=26, base_value=Decimal("50.00"))
-    insert_player("Edu Lima", position="MEI", age=26, base_value=Decimal("45.00"), club=club)
+    insert_player(
+        "Edu Lima", position="MEI", age=26, base_value=Decimal("45.00"), club=club
+    )
     insert_player("Fábio Souza", position="MEI", age=26, base_value=Decimal("40.00"))
 
     body = list_players(
@@ -366,7 +441,9 @@ def test_unknown_or_differently_cased_params_are_ignored(client: TestClient) -> 
         "limit=51",
     ],
 )
-def test_malformed_query_param_is_refused_with_400(client: TestClient, query: str) -> None:
+def test_malformed_query_param_is_refused_with_400(
+    client: TestClient, query: str
+) -> None:
     response = client.get(f"{PLAYERS_URL}?{query}")
 
     assert response.status_code == 400

@@ -60,5 +60,7 @@ def transactions_csv_response(
 ) -> CsvResponse:
     return CsvResponse(
         render_transactions_csv(transactions),
-        headers={"Content-Disposition": f'attachment; filename="transacoes-clube-{club_id}.csv"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="transacoes-clube-{club_id}.csv"'
+        },
     )

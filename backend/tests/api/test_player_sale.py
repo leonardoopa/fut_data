@@ -57,7 +57,11 @@ def test_sale_after_the_loyalty_period_ends_the_contract_without_penalty(
 
     body = sell(client, player.id).json()
 
-    assert (body["penalty"], body["remaining_days"], body["penalty_rate"]) == (0.0, 0, 0)
+    assert (body["penalty"], body["remaining_days"], body["penalty_rate"]) == (
+        0.0,
+        0,
+        0,
+    )
     assert (body["contract_status"], body["cash_change"], body["club_cash"]) == (
         "ENCERRADO",
         20.0,
@@ -83,7 +87,9 @@ def test_sold_starter_leaves_the_lineup_and_the_formation_stays(
     assert Club.objects.get(pk=club_id).formation == "2-2"
 
 
-def test_sale_ignores_a_body_sent_with_the_request(client: TestClient, clock: FixedClock) -> None:
+def test_sale_ignores_a_body_sent_with_the_request(
+    client: TestClient, clock: FixedClock
+) -> None:
     player_id, _ = buy_documented_example(client)
 
     response = client.post(f"/api/v1/players/{player_id}/sell", json={"club_id": 999})

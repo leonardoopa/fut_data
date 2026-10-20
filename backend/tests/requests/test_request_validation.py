@@ -26,7 +26,9 @@ class ProbeBody(BaseModel):
 
 
 class ProbeFilters(BaseModel):
-    types: Annotated[tuple[TransactionType, ...] | None, choice_list(TransactionType)] = None
+    types: Annotated[
+        tuple[TransactionType, ...] | None, choice_list(TransactionType)
+    ] = None
 
 
 probe_router = APIRouter(prefix="/probe")
@@ -45,7 +47,9 @@ def echo_query(
 
 
 @probe_router.get("/filters")
-def echo_filters(filters: Annotated[ProbeFilters, Query()]) -> dict[str, list[str] | None]:
+def echo_filters(
+    filters: Annotated[ProbeFilters, Query()],
+) -> dict[str, list[str] | None]:
     return {"types": None if filters.types is None else list(filters.types)}
 
 

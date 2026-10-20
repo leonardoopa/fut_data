@@ -30,11 +30,15 @@ ACRONYM_PATTERN = re.compile(f"[A-Z]{{{ACRONYM_LENGTH}}}")
 
 def validate_name(name: str) -> str:
     if not NAME_MIN_LENGTH <= len(name) <= NAME_MAX_LENGTH:
-        raise InvalidInputError(f"deve ter de {NAME_MIN_LENGTH} a {NAME_MAX_LENGTH} caracteres.")
+        raise InvalidInputError(
+            f"deve ter de {NAME_MIN_LENGTH} a {NAME_MAX_LENGTH} caracteres."
+        )
     if not all(is_letter(character) or character in NAME_SYMBOLS for character in name):
         raise InvalidInputError("só pode conter letras, espaços, hífen e ponto.")
     if not NAME_MIN_WORDS <= count_words(name) <= NAME_MAX_WORDS:
-        raise InvalidInputError(f"deve ter de {NAME_MIN_WORDS} a {NAME_MAX_WORDS} palavras.")
+        raise InvalidInputError(
+            f"deve ter de {NAME_MIN_WORDS} a {NAME_MAX_WORDS} palavras."
+        )
     return name
 
 
@@ -49,11 +53,15 @@ def validate_acronym(acronym: str) -> str:
 
 
 def validate_acronym_for_name(acronym: str, name: str) -> None:
-    name_letters = [character for character in alphabetical_key(name) if is_letter(character)]
+    name_letters = [
+        character for character in alphabetical_key(name) if is_letter(character)
+    ]
     first, *others = alphabetical_key(acronym)
     following_letters = iter(name_letters[1:])
     starts_with_first_letter = bool(name_letters) and name_letters[0] == first
-    if not starts_with_first_letter or not all(letter in following_letters for letter in others):
+    if not starts_with_first_letter or not all(
+        letter in following_letters for letter in others
+    ):
         raise AcronymMismatchError
 
 
@@ -66,7 +74,9 @@ def lower_keeping_length(character: str) -> str:
     return lowered if len(lowered) == 1 else character
 
 
-def ensure_registration_allowed(*, club_count: int, name_taken: bool, acronym_taken: bool) -> None:
+def ensure_registration_allowed(
+    *, club_count: int, name_taken: bool, acronym_taken: bool
+) -> None:
     if name_taken:
         raise ClubNameTakenError
     if acronym_taken:

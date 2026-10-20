@@ -75,7 +75,9 @@ def choice_list[E: StrEnum](
         text = single_occurrence(raw)
         tokens = text.split(LIST_SEPARATOR) if isinstance(text, str) else []
         if not tokens or any(token not in options for token in tokens):
-            raise InvalidInputError(f"use valores entre {accepted}, separados por vírgula.")
+            raise InvalidInputError(
+                f"use valores entre {accepted}, separados por vírgula."
+            )
         chosen = tuple(options[token] for token in tokens)
         if max_items is not None and len(chosen) > max_items:
             raise InvalidInputError(f"aceita no máximo {max_items} valores.")
@@ -93,5 +95,9 @@ QueryPositiveInteger = Annotated[
 QueryDecimal = Annotated[
     Decimal | None, PlainValidator(parse_decimal, json_schema_input_type=Decimal)
 ]
-QueryBoolean = Annotated[bool | None, PlainValidator(parse_boolean, json_schema_input_type=bool)]
-QuerySearch = Annotated[str | None, PlainValidator(parse_search, json_schema_input_type=str)]
+QueryBoolean = Annotated[
+    bool | None, PlainValidator(parse_boolean, json_schema_input_type=bool)
+]
+QuerySearch = Annotated[
+    str | None, PlainValidator(parse_search, json_schema_input_type=str)
+]

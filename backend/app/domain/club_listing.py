@@ -32,4 +32,6 @@ SORT_KEYS: dict[ClubSort, Callable[[ListedClub], tuple[Decimal, ...]]] = {
 
 def sort_clubs[C: ListedClub](clubs: Iterable[C], sort: ClubSort) -> list[C]:
     key = SORT_KEYS[sort]
-    return sorted(clubs, key=lambda club: (*key(club), alphabetical_key(club.name), club.id))
+    return sorted(
+        clubs, key=lambda club: (*key(club), alphabetical_key(club.name), club.id)
+    )

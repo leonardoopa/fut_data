@@ -47,13 +47,19 @@ QueryMarketValue = Annotated[
     QueryDecimal,
     Field(ge=VALUE_FILTER_MIN, le=VALUE_FILTER_MAX),
     WithJsonSchema(
-        {"type": "number", "minimum": int(VALUE_FILTER_MIN), "maximum": int(VALUE_FILTER_MAX)}
+        {
+            "type": "number",
+            "minimum": int(VALUE_FILTER_MIN),
+            "maximum": int(VALUE_FILTER_MAX),
+        }
     ),
 ]
 QueryLimit = Annotated[QueryPositiveInteger, Field(le=MAX_LIMIT)]
 QueryPlayerSort = Annotated[
     tuple[PlayerSort, ...] | None,
-    choice_list(PlayerSort, max_items=MAX_SORT_CRITERIA, group_of=lambda sort: sort.field),
+    choice_list(
+        PlayerSort, max_items=MAX_SORT_CRITERIA, group_of=lambda sort: sort.field
+    ),
 ]
 
 
@@ -106,7 +112,9 @@ class PlayerRegistrationRequest(PlayerProfileRequest):
 
     def to_registration(self) -> PlayerRegistration:
         return PlayerRegistration(
-            profile=self.to_profile(), attributes=self.attributes, potential=self.potential
+            profile=self.to_profile(),
+            attributes=self.attributes,
+            potential=self.potential,
         )
 
 

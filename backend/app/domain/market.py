@@ -174,7 +174,10 @@ def calculate_commission(profit: Decimal) -> Decimal:
 
 
 def settle_sale(
-    market_value: Decimal, purchase_value: Decimal, loyalty_until: datetime, sold_at: datetime
+    market_value: Decimal,
+    purchase_value: Decimal,
+    loyalty_until: datetime,
+    sold_at: datetime,
 ) -> SaleSettlement:
     profit = market_value - purchase_value
     terms = contract_terms(purchase_value, loyalty_until, sold_at)

@@ -25,7 +25,9 @@ def test_registered_player_gets_the_base_value_of_the_registration_data() -> Non
     )
 
 
-@pytest.mark.parametrize(("name", "key"), [("Águias FC", "águias fc"), ("ÁGUIAS FC", "águias fc")])
+@pytest.mark.parametrize(
+    ("name", "key"), [("Águias FC", "águias fc"), ("ÁGUIAS FC", "águias fc")]
+)
 def test_registered_club_keeps_the_name_key_for_uniqueness(name: str, key: str) -> None:
     club = Club.from_registration(ClubRegistration(name=name, acronym="AGU"))
 

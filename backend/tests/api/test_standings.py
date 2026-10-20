@@ -31,7 +31,13 @@ def test_documented_standings_after_four_matches(client: TestClient) -> None:
     rows = standings(client)
 
     summary = [
-        (row["position"], row["club_name"], row["points"], row["goal_difference"], row["goals_for"])
+        (
+            row["position"],
+            row["club_name"],
+            row["points"],
+            row["goal_difference"],
+            row["goals_for"],
+        )
         for row in rows
     ]
     assert summary == [
@@ -58,7 +64,9 @@ def test_documented_standings_after_four_matches(client: TestClient) -> None:
 
 
 def test_standings_are_computed_on_each_request(client: TestClient) -> None:
-    home, away = create_club("AGU", name="Águias FC"), create_club("DEL", name="Delta FC")
+    home, away = create_club("AGU", name="Águias FC"), create_club(
+        "DEL", name="Delta FC"
+    )
     before = standings(client)
     insert_match(home, away, 2, 2)
 

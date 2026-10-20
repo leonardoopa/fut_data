@@ -10,7 +10,11 @@ from app.models import Player
 from app.repositories.club_repository import ClubRepository
 from app.repositories.lineup_repository import LineupRepository
 from app.repositories.player_repository import PlayerRepository
-from app.services.lookups import ensure_club_exists, ensure_club_found, ensure_players_found
+from app.services.lookups import (
+    ensure_club_exists,
+    ensure_club_found,
+    ensure_players_found,
+)
 
 
 @dataclass(frozen=True)
@@ -28,7 +32,10 @@ class LineupService:
     """Locks players, then the club, in the same order as buy and sell."""
 
     def __init__(
-        self, players: PlayerRepository, clubs: ClubRepository, lineups: LineupRepository
+        self,
+        players: PlayerRepository,
+        clubs: ClubRepository,
+        lineups: LineupRepository,
     ) -> None:
         self._players = players
         self._clubs = clubs
@@ -45,9 +52,13 @@ class LineupService:
         self._lineups.replace(club.id, starters)
         club.formation = selection.formation
         self._clubs.save(club)
-        return Lineup(club_id=club.id, formation=selection.formation, players=sort_squad(starters))
+        return Lineup(
+            club_id=club.id, formation=selection.formation, players=sort_squad(starters)
+        )
 
     def get(self, club_id: int) -> Lineup:
         club = ensure_club_found(self._clubs.get(club_id))
         starters = self._lineups.starters_of(club.id)
-        return Lineup(club_id=club.id, formation=club.formation, players=sort_squad(starters))
+        return Lineup(
+            club_id=club.id, formation=club.formation, players=sort_squad(starters)
+        )

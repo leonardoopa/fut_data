@@ -1,7 +1,12 @@
 import pytest
 
 from app.domain.exceptions import InvalidInputError
-from app.domain.text import alphabetical_key, count_words, matches_search, normalize_text
+from app.domain.text import (
+    alphabetical_key,
+    count_words,
+    matches_search,
+    normalize_text,
+)
 
 
 @pytest.mark.parametrize(
@@ -13,7 +18,9 @@ from app.domain.text import alphabetical_key, count_words, matches_search, norma
         ("Ana\u00a0Lima", "Ana\u00a0Lima"),
     ],
 )
-def test_normalize_text_trims_and_collapses_only_regular_spaces(raw: str, expected: str) -> None:
+def test_normalize_text_trims_and_collapses_only_regular_spaces(
+    raw: str, expected: str
+) -> None:
     assert normalize_text(raw) == expected
 
 
@@ -27,7 +34,9 @@ def test_normalize_text_rejects_control_characters(raw: str) -> None:
     ("text", "expected_words"),
     [("Meia Lua", 2), ("Águias - FC", 2), ("Santa-Cruz F.C.", 2), ("Pelé", 1)],
 )
-def test_words_are_space_separated_tokens_with_a_letter(text: str, expected_words: int) -> None:
+def test_words_are_space_separated_tokens_with_a_letter(
+    text: str, expected_words: int
+) -> None:
     assert count_words(text) == expected_words
 
 
@@ -58,5 +67,7 @@ def test_names_differing_only_by_accent_tie_in_alphabetical_order() -> None:
         ("Meia Lua", "sol", False),
     ],
 )
-def test_search_ignores_case_and_accents(name: str, search: str, expected: bool) -> None:
+def test_search_ignores_case_and_accents(
+    name: str, search: str, expected: bool
+) -> None:
     assert matches_search(name, search) is expected

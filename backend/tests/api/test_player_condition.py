@@ -21,7 +21,9 @@ def test_condition_change_returns_the_player_with_the_new_market_value(
 ) -> None:
     player_id = register_player(client)["id"]
 
-    response = client.patch(condition_url(player_id), json={"condition": "MAL_CONDICIONADO"})
+    response = client.patch(
+        condition_url(player_id), json={"condition": "MAL_CONDICIONADO"}
+    )
 
     body = response.json()
     assert response.status_code == 200
@@ -33,7 +35,9 @@ def test_condition_change_returns_the_player_with_the_new_market_value(
     assert stored_condition(player_id) == "MAL_CONDICIONADO"
 
 
-def test_sending_the_current_condition_is_accepted_without_change(client: TestClient) -> None:
+def test_sending_the_current_condition_is_accepted_without_change(
+    client: TestClient,
+) -> None:
     player_id = register_player(client)["id"]
     updated_at = Player.objects.get(pk=player_id).updated_at
 
@@ -93,7 +97,9 @@ def test_starter_who_becomes_unfit_stays_in_the_lineup(client: TestClient) -> No
     assert LineupSlot.objects.filter(player_id=player_id).exists()
 
 
-def test_refused_condition_change_keeps_the_starter_in_the_lineup(client: TestClient) -> None:
+def test_refused_condition_change_keeps_the_starter_in_the_lineup(
+    client: TestClient,
+) -> None:
     player_id = register_player(client)["id"]
     Player.objects.filter(pk=player_id).update(condition="DOENTE")
     sign_player(player_id, create_club(), starter=True)
@@ -131,7 +137,8 @@ def test_condition_change_ignores_fields_of_other_endpoints(client: TestClient) 
     player_id = register_player(client)["id"]
 
     response = client.patch(
-        condition_url(player_id), json={"condition": "DOENTE", "name": "Outro Nome", "age": 40}
+        condition_url(player_id),
+        json={"condition": "DOENTE", "name": "Outro Nome", "age": 40},
     )
 
     assert (response.json()["name"], response.json()["age"]) == ("Meia Lua", 25)
@@ -155,5 +162,10 @@ def test_condition_change_of_a_deleted_player_is_404(client: TestClient) -> None
 
 
 @pytest.mark.parametrize("player_id", ["abc", "0", "-1", "01"])
-def test_condition_change_with_a_malformed_id_is_404(client: TestClient, player_id: str) -> None:
-    assert client.patch(condition_url(player_id), json={"condition": "DOENTE"}).status_code == 404
+def test_condition_change_with_a_malformed_id_is_404(
+    client: TestClient, player_id: str
+) -> None:
+    assert (
+        client.patch(condition_url(player_id), json={"condition": "DOENTE"}).status_code
+        == 404
+    )

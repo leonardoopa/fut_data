@@ -16,7 +16,9 @@ router = DatabaseRouter(prefix="/clubs", tags=["Clubs"])
 
 
 def get_club_service(clock: Annotated[Clock, Depends(get_clock)]) -> ClubService:
-    return ClubService(clubs=ClubRepository(), contracts=ContractRepository(), clock=clock)
+    return ClubService(
+        clubs=ClubRepository(), contracts=ContractRepository(), clock=clock
+    )
 
 
 ClubServiceDependency = Annotated[ClubService, Depends(get_club_service)]
@@ -26,7 +28,9 @@ ClubServiceDependency = Annotated[ClubService, Depends(get_club_service)]
 def list_clubs(
     query: Annotated[ClubListQuery, Query()], service: ClubServiceDependency
 ) -> list[ClubView]:
-    return [ClubView.from_model(club) for club in service.list_clubs(query.to_criteria())]
+    return [
+        ClubView.from_model(club) for club in service.list_clubs(query.to_criteria())
+    ]
 
 
 @router.get("/{club_id}", summary="Get a club with its squad and contracts (RN11)")
@@ -42,5 +46,7 @@ def create_club(
     service: ClubServiceDependency,
 ) -> ClubView:
     club = service.register(body.to_registration())
-    response.headers["Location"] = request.app.url_path_for(get_club.__name__, club_id=club.id)
+    response.headers["Location"] = request.app.url_path_for(
+        get_club.__name__, club_id=club.id
+    )
     return ClubView.from_model(club)

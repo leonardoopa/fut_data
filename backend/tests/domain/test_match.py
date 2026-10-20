@@ -34,7 +34,8 @@ def starter(
     player_id: int, name: str, position: str, condition: str = "APTO", **attributes: int
 ) -> FakeStarter:
     registered = dict.fromkeys(
-        ("pace", "shooting", "passing", "dribbling", "defending", "physical"), DEFAULT_ATTRIBUTE
+        ("pace", "shooting", "passing", "dribbling", "defending", "physical"),
+        DEFAULT_ATTRIBUTE,
     )
     return FakeStarter(
         id=player_id,
@@ -87,7 +88,13 @@ def test_documented_match_plays_the_six_duels_of_the_statement() -> None:
     assert duels == [
         (1, HOME_ID, side(OTTO, SHOOTING, 75), side(IVO, DEFENDING, 72), True),
         (2, HOME_ID, side(LAURO, PASSING, 82), side(HUGO, DEFENDING, 84), False),
-        (3, HOME_ID, side(DAVI, DRIBBLING, 63, UNFIT), side(LINO, DEFENDING, 63), False),
+        (
+            3,
+            HOME_ID,
+            side(DAVI, DRIBBLING, 63, UNFIT),
+            side(LINO, DEFENDING, 63),
+            False,
+        ),
         (4, AWAY_ID, side(UGO, SHOOTING, 81), side(RUI, DEFENDING, 77), True),
         (5, AWAY_ID, side(NEI, PASSING, 70), side(TEO, DEFENDING, 84), False),
         (6, AWAY_ID, side(LINO, DRIBBLING, 79), side(DAVI, DEFENDING, 56, UNFIT), True),
@@ -185,7 +192,13 @@ def test_attacker_uses_the_attribute_of_its_position(
 def test_equal_values_are_not_a_goal() -> None:
     home = Team(
         club_id=HOME_ID,
-        starters=(RUI, TEO, DAVI, LAURO, starter(35, "Otto Rangel", "ATA", shooting=72)),
+        starters=(
+            RUI,
+            TEO,
+            DAVI,
+            LAURO,
+            starter(35, "Otto Rangel", "ATA", shooting=72),
+        ),
     )
 
     first_duel = play_match(home, DELTA).duels[0]
@@ -204,7 +217,9 @@ def test_equal_values_are_not_a_goal() -> None:
         (3, 3, MatchResult.EMPATE),
     ],
 )
-def test_result_follows_the_score(home_goals: int, away_goals: int, result: MatchResult) -> None:
+def test_result_follows_the_score(
+    home_goals: int, away_goals: int, result: MatchResult
+) -> None:
     assert decide_result(home_goals, away_goals) == result
 
 

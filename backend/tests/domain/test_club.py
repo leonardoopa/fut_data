@@ -46,7 +46,9 @@ def test_acronym_letters_appear_in_the_name_in_order_ignoring_case_and_accents(
         ("SFP", "São-Paulo FC"),
     ],
 )
-def test_acronym_that_does_not_match_the_name_is_refused(acronym: str, name: str) -> None:
+def test_acronym_that_does_not_match_the_name_is_refused(
+    acronym: str, name: str
+) -> None:
     with pytest.raises(InvalidInputError, match="primeira letra do nome"):
         validate_acronym_for_name(acronym, name)
 
@@ -59,7 +61,9 @@ def test_acronym_that_does_not_match_the_name_is_refused(acronym: str, name: str
         ("Águias FC", "Aguias FC", False),
     ],
 )
-def test_name_key_ignores_case_but_keeps_accents(first: str, second: str, same_key: bool) -> None:
+def test_name_key_ignores_case_but_keeps_accents(
+    first: str, second: str, same_key: bool
+) -> None:
     assert (name_key(first) == name_key(second)) is same_key
 
 

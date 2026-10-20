@@ -7,7 +7,9 @@ from app.dtos.market import PurchaseOrder, TransactionListCriteria
 from app.requests.fields import BrasiliaDateTime, PositiveId
 from app.requests.query import QueryPositiveInteger, choice_list
 
-QueryTransactionTypes = Annotated[tuple[TransactionType, ...] | None, choice_list(TransactionType)]
+QueryTransactionTypes = Annotated[
+    tuple[TransactionType, ...] | None, choice_list(TransactionType)
+]
 
 
 class PurchaseRequest(BaseModel):

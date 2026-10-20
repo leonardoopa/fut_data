@@ -79,9 +79,17 @@ def test_name_order_ignores_case_and_accents_and_puts_space_before_hyphen() -> N
 
 
 def test_names_equal_in_the_alphabetical_comparison_are_ordered_by_id() -> None:
-    players = [StubPlayer(3, "Ana Lima"), StubPlayer(1, "ana lima"), StubPlayer(2, "Âna Lima")]
+    players = [
+        StubPlayer(3, "Ana Lima"),
+        StubPlayer(1, "ana lima"),
+        StubPlayer(2, "Âna Lima"),
+    ]
 
-    assert [player.id for player in sort_players(players, (PlayerSort.NAME,))] == [1, 2, 3]
+    assert [player.id for player in sort_players(players, (PlayerSort.NAME,))] == [
+        1,
+        2,
+        3,
+    ]
 
 
 @pytest.mark.parametrize(
@@ -95,7 +103,9 @@ def test_names_equal_in_the_alphabetical_comparison_are_ordered_by_id() -> None:
         (PlayerSort.POSITION, "position"),
     ],
 )
-def test_both_directions_of_a_criterion_sort_the_same_field(sort: PlayerSort, field: str) -> None:
+def test_both_directions_of_a_criterion_sort_the_same_field(
+    sort: PlayerSort, field: str
+) -> None:
     assert sort.field == field
 
 
@@ -115,9 +125,15 @@ def test_value_filter_uses_the_market_value_and_includes_both_bounds() -> None:
 
 @pytest.mark.parametrize(
     ("search", "expected"),
-    [("JOAO", ["João Silva"]), ("lua", ["Meia Lua"]), (None, ["João Silva", "Meia Lua"])],
+    [
+        ("JOAO", ["João Silva"]),
+        ("lua", ["Meia Lua"]),
+        (None, ["João Silva", "Meia Lua"]),
+    ],
 )
-def test_search_ignores_case_and_accents(search: str | None, expected: list[str]) -> None:
+def test_search_ignores_case_and_accents(
+    search: str | None, expected: list[str]
+) -> None:
     players = [StubPlayer(1, "João Silva"), StubPlayer(2, "Meia Lua")]
 
     selected = filter_by_search_and_value(
@@ -127,7 +143,9 @@ def test_search_ignores_case_and_accents(search: str | None, expected: list[str]
     assert names(selected) == expected
 
 
-@pytest.mark.parametrize(("min_age", "max_age"), [(16, 45), (45, 45), (16, 16), (30, 30)])
+@pytest.mark.parametrize(
+    ("min_age", "max_age"), [(16, 45), (45, 45), (16, 16), (30, 30)]
+)
 def test_age_range_with_min_up_to_max_is_accepted(min_age: int, max_age: int) -> None:
     validate_age_range(min_age, max_age)
 
@@ -139,9 +157,15 @@ def test_age_range_with_min_above_max_is_refused() -> None:
 
 @pytest.mark.parametrize(
     ("min_value", "max_value"),
-    [(Decimal(0), Decimal(550)), (Decimal(550), Decimal(550)), (Decimal("10.5"), Decimal("10.5"))],
+    [
+        (Decimal(0), Decimal(550)),
+        (Decimal(550), Decimal(550)),
+        (Decimal("10.5"), Decimal("10.5")),
+    ],
 )
-def test_value_range_with_min_up_to_max_is_accepted(min_value: Decimal, max_value: Decimal) -> None:
+def test_value_range_with_min_up_to_max_is_accepted(
+    min_value: Decimal, max_value: Decimal
+) -> None:
     validate_value_range(min_value, max_value)
 
 
@@ -150,7 +174,9 @@ def test_value_range_with_min_above_max_is_refused() -> None:
         validate_value_range(Decimal("10.01"), Decimal(10))
 
 
-@pytest.mark.parametrize(("free", "club_id"), [(None, None), (True, None), (False, 1), (None, 1)])
+@pytest.mark.parametrize(
+    ("free", "club_id"), [(None, None), (True, None), (False, 1), (None, 1)]
+)
 def test_club_filter_without_free_true_and_club_id_together_is_accepted(
     free: bool | None, club_id: int | None
 ) -> None:

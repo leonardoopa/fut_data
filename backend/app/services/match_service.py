@@ -10,7 +10,11 @@ from app.models import Club, Match, MatchDuel
 from app.repositories.club_repository import ClubRepository
 from app.repositories.lineup_repository import LineupRepository
 from app.repositories.match_repository import MatchRepository
-from app.services.lookups import ensure_club_exists, ensure_club_found, ensure_match_found
+from app.services.lookups import (
+    ensure_club_exists,
+    ensure_club_found,
+    ensure_match_found,
+)
 
 
 @dataclass(frozen=True)

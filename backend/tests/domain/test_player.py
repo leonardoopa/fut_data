@@ -44,7 +44,9 @@ def test_attributes_adding_up_to_more_than_480_are_refused() -> None:
 def test_potential_at_or_above_the_highest_attribute_is_accepted(
     potential: int, registration_age: int
 ) -> None:
-    validate_potential(potential, MEIA_LUA_ATTRIBUTES, registration_age=registration_age)
+    validate_potential(
+        potential, MEIA_LUA_ATTRIBUTES, registration_age=registration_age
+    )
 
 
 @pytest.mark.parametrize(
@@ -60,7 +62,9 @@ def test_potential_below_the_highest_attribute_or_above_it_from_33_years_is_refu
     potential: int, registration_age: int, reason: str
 ) -> None:
     with pytest.raises(InvalidInputError, match=reason):
-        validate_potential(potential, MEIA_LUA_ATTRIBUTES, registration_age=registration_age)
+        validate_potential(
+            potential, MEIA_LUA_ATTRIBUTES, registration_age=registration_age
+        )
 
 
 @pytest.mark.parametrize(
@@ -109,7 +113,11 @@ def test_age_cannot_decrease(has_club: bool) -> None:
 
 @pytest.mark.parametrize(
     ("current", "new"),
-    [pair for pair in product(Condition, repeat=2) if pair != (Condition.DOENTE, Condition.APTO)],
+    [
+        pair
+        for pair in product(Condition, repeat=2)
+        if pair != (Condition.DOENTE, Condition.APTO)
+    ],
 )
 def test_every_condition_change_but_sick_to_apt_is_allowed(
     current: Condition, new: Condition
@@ -124,9 +132,15 @@ def test_sick_player_cannot_go_straight_to_apt() -> None:
 
 @pytest.mark.parametrize(
     ("condition", "expected"),
-    [(Condition.DOENTE, True), (Condition.MAL_CONDICIONADO, False), (Condition.APTO, False)],
+    [
+        (Condition.DOENTE, True),
+        (Condition.MAL_CONDICIONADO, False),
+        (Condition.APTO, False),
+    ],
 )
-def test_only_a_sick_starter_leaves_the_lineup(condition: Condition, expected: bool) -> None:
+def test_only_a_sick_starter_leaves_the_lineup(
+    condition: Condition, expected: bool
+) -> None:
     assert leaves_lineup(condition) is expected
 
 

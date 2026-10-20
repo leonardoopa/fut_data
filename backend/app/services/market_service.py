@@ -25,7 +25,11 @@ from app.repositories.contract_repository import ContractRepository
 from app.repositories.lineup_repository import LineupRepository
 from app.repositories.player_repository import PlayerRepository
 from app.repositories.transaction_repository import TransactionRepository
-from app.services.lookups import ensure_club_exists, ensure_club_found, ensure_player_found
+from app.services.lookups import (
+    ensure_club_exists,
+    ensure_club_found,
+    ensure_player_found,
+)
 
 
 @dataclass(frozen=True)
@@ -87,7 +91,9 @@ class MarketService:
         contract = Contract.sign(player, club, quote.value, order.loyalty_until, moment)
         self._contracts.save(contract)
         market_transaction = self._record(club, player, quote.amounts, moment)
-        return Purchase(transaction=market_transaction, contract=contract, club_cash=club.cash)
+        return Purchase(
+            transaction=market_transaction, contract=contract, club_cash=club.cash
+        )
 
     @transaction.atomic
     def sell(self, player_id: int) -> Sale:
@@ -105,7 +111,9 @@ class MarketService:
         player.club = None
         self._players.save(player)
         market_transaction = self._record(club, player, settlement.amounts, moment)
-        return Sale(transaction=market_transaction, settlement=settlement, club_cash=club.cash)
+        return Sale(
+            transaction=market_transaction, settlement=settlement, club_cash=club.cash
+        )
 
     def list_transactions(
         self, club_id: int, criteria: TransactionListCriteria

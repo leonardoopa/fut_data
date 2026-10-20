@@ -15,7 +15,12 @@ from app.requests.players import (
     PlayerRegistrationRequest,
 )
 
-PROFILE_BODY: dict[str, Any] = {"name": "Meia Lua", "position": "MEI", "agility": 85, "age": 25}
+PROFILE_BODY: dict[str, Any] = {
+    "name": "Meia Lua",
+    "position": "MEI",
+    "agility": 85,
+    "age": 25,
+}
 REGISTRATION_BODY: dict[str, Any] = {
     **PROFILE_BODY,
     "pace": 70,
@@ -26,7 +31,9 @@ REGISTRATION_BODY: dict[str, Any] = {
     "physical": 64,
     "potential": 86,
 }
-MEIA_LUA_PROFILE = PlayerProfile(name="Meia Lua", position=Position.MEI, agility=85, age=25)
+MEIA_LUA_PROFILE = PlayerProfile(
+    name="Meia Lua", position=Position.MEI, agility=85, age=25
+)
 MEIA_LUA_REGISTRATION = PlayerRegistration(
     MEIA_LUA_PROFILE, PlayerAttributes(70, 68, 82, 79, 55, 64), potential=86
 )
@@ -56,7 +63,9 @@ def test_registration_request_ignores_fields_controlled_by_the_system() -> None:
         "overall": 1,
     }
 
-    request = PlayerRegistrationRequest.model_validate({**REGISTRATION_BODY, **controlled})
+    request = PlayerRegistrationRequest.model_validate(
+        {**REGISTRATION_BODY, **controlled}
+    )
 
     assert request.to_registration() == MEIA_LUA_REGISTRATION
 
@@ -93,7 +102,9 @@ def test_registration_field_outside_its_limits_is_refused(
         ({"age": 33}, "igual ao maior"),
     ],
 )
-def test_registration_rule_between_fields_is_refused(changes: dict[str, Any], reason: str) -> None:
+def test_registration_rule_between_fields_is_refused(
+    changes: dict[str, Any], reason: str
+) -> None:
     error = first_error(PlayerRegistrationRequest, {**REGISTRATION_BODY, **changes})
 
     assert error["loc"] == ()
@@ -101,13 +112,17 @@ def test_registration_rule_between_fields_is_refused(changes: dict[str, Any], re
 
 
 def test_profile_request_ignores_the_fields_of_the_registration() -> None:
-    request = PlayerProfileRequest.model_validate({**REGISTRATION_BODY, "pace": 1, "potential": 1})
+    request = PlayerProfileRequest.model_validate(
+        {**REGISTRATION_BODY, "pace": 1, "potential": 1}
+    )
 
     assert request.to_profile() == MEIA_LUA_PROFILE
 
 
 def test_profile_request_caps_the_agility_but_never_checks_the_potential() -> None:
-    capped = first_error(PlayerProfileRequest, {**PROFILE_BODY, "agility": 86, "age": 35})
+    capped = first_error(
+        PlayerProfileRequest, {**PROFILE_BODY, "agility": 86, "age": 35}
+    )
     request = PlayerProfileRequest.model_validate({**PROFILE_BODY, "age": 40})
 
     assert "agilidade" in capped["msg"]
@@ -124,15 +139,20 @@ def test_profile_request_requires_the_four_fields(field: str) -> None:
 
 
 def test_condition_request_reads_the_condition_and_ignores_other_fields() -> None:
-    request = PlayerConditionRequest.model_validate({"condition": "DOENTE", "name": "Outro"})
+    request = PlayerConditionRequest.model_validate(
+        {"condition": "DOENTE", "name": "Outro"}
+    )
 
     assert request.condition == Condition.DOENTE
 
 
 @pytest.mark.parametrize(
-    "body", [{}, {"condition": None}, {"condition": "doente"}, {"condition": "LESIONADO"}]
+    "body",
+    [{}, {"condition": None}, {"condition": "doente"}, {"condition": "LESIONADO"}],
 )
-def test_condition_request_refuses_missing_null_or_unlisted_values(body: dict[str, Any]) -> None:
+def test_condition_request_refuses_missing_null_or_unlisted_values(
+    body: dict[str, Any],
+) -> None:
     assert first_error(PlayerConditionRequest, body)["loc"] == ("condition",)
 
 
@@ -179,8 +199,14 @@ def test_list_query_reads_every_param() -> None:
     [
         ({"min_age": "30"}, PlayerListCriteria(min_age=30, max_age=45)),
         ({"max_age": "30"}, PlayerListCriteria(min_age=16, max_age=30)),
-        ({"min_value": "20"}, PlayerListCriteria(min_value=Decimal(20), max_value=Decimal(550))),
-        ({"max_value": "20"}, PlayerListCriteria(min_value=Decimal(0), max_value=Decimal(20))),
+        (
+            {"min_value": "20"},
+            PlayerListCriteria(min_value=Decimal(20), max_value=Decimal(550)),
+        ),
+        (
+            {"max_value": "20"},
+            PlayerListCriteria(min_value=Decimal(0), max_value=Decimal(20)),
+        ),
     ],
 )
 def test_list_query_range_with_one_bound_takes_the_other_extreme(
@@ -217,11 +243,15 @@ def test_list_query_param_outside_the_accepted_values_is_refused(
         {"free": "true", "club_id": "1"},
     ],
 )
-def test_list_query_contradictory_combination_is_refused(params: dict[str, str]) -> None:
+def test_list_query_contradictory_combination_is_refused(
+    params: dict[str, str],
+) -> None:
     assert first_error(PlayerListQuery, params)["loc"] == ()
 
 
 def test_list_query_accepts_free_false_with_club_id() -> None:
-    criteria = PlayerListQuery.model_validate({"free": "false", "club_id": "1"}).to_criteria()
+    criteria = PlayerListQuery.model_validate(
+        {"free": "false", "club_id": "1"}
+    ).to_criteria()
 
     assert (criteria.free, criteria.club_id) == (False, 1)

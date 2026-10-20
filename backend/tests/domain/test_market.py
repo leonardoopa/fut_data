@@ -63,7 +63,9 @@ def test_purchase_limit_is_exactly_half_of_the_cash_without_rounding() -> None:
         (timedelta(days=116, hours=17, minutes=35), 117),
     ],
 )
-def test_remaining_days_round_any_fraction_up(time_left: timedelta, expected_days: int) -> None:
+def test_remaining_days_round_any_fraction_up(
+    time_left: timedelta, expected_days: int
+) -> None:
     assert remaining_loyalty_days(SOLD_AT + time_left, SOLD_AT) == expected_days
 
 
@@ -96,7 +98,15 @@ def test_commission_follows_the_specification_examples(
 
 
 @pytest.mark.parametrize(
-    ("purchase_value", "sale_value", "time_left", "penalty", "profit", "commission", "credit"),
+    (
+        "purchase_value",
+        "sale_value",
+        "time_left",
+        "penalty",
+        "profit",
+        "commission",
+        "credit",
+    ),
     [
         ("37.00", "40.00", timedelta(days=100), "4.00", "3.00", "0.30", "35.70"),
         ("50.00", "42.50", timedelta(days=200), "8.50", "-7.50", "0.00", "34.00"),
@@ -163,7 +173,9 @@ def test_loyalty_until_after_the_purchase_and_within_1095_days_is_accepted(
         (timedelta(days=1095, minutes=1), "no máximo 1095 dias"),
     ],
 )
-def test_loyalty_until_outside_the_window_is_refused(time_ahead: timedelta, reason: str) -> None:
+def test_loyalty_until_outside_the_window_is_refused(
+    time_ahead: timedelta, reason: str
+) -> None:
     with pytest.raises(InvalidInputError, match=reason):
         validate_loyalty_until(BOUGHT_AT + time_ahead, BOUGHT_AT)
 
@@ -197,7 +209,9 @@ def test_purchase_is_refused_by_the_state_of_the_player_and_the_club(
     changes: dict[str, object], message: str
 ) -> None:
     with pytest.raises(BusinessRuleError, match=message):
-        ensure_purchase_allowed(quote_purchase(Decimal("37.00")), **allowed_purchase(**changes))
+        ensure_purchase_allowed(
+            quote_purchase(Decimal("37.00")), **allowed_purchase(**changes)
+        )
 
 
 def test_free_player_cannot_be_sold() -> None:
@@ -222,7 +236,9 @@ def test_purchase_amounts_take_the_total_cost_from_the_cash() -> None:
 def test_sale_amounts_record_the_commission_as_fee_and_credit_the_cash() -> None:
     loyalty_until = datetime(2027, 3, 2, 13, 15, tzinfo=UTC)
 
-    amounts = settle_sale(Decimal("40.00"), Decimal("37.00"), loyalty_until, SOLD_AT).amounts
+    amounts = settle_sale(
+        Decimal("40.00"), Decimal("37.00"), loyalty_until, SOLD_AT
+    ).amounts
 
     assert amounts == TransactionAmounts(
         type=TransactionType.VENDA,

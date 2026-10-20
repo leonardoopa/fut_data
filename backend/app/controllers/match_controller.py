@@ -32,11 +32,16 @@ MatchServiceDependency = Annotated[MatchService, Depends(get_match_service)]
 def list_matches(
     query: Annotated[MatchListQuery, Query()], service: MatchServiceDependency
 ) -> list[MatchView]:
-    return [MatchView.from_model(match) for match in service.list_matches(query.to_criteria())]
+    return [
+        MatchView.from_model(match)
+        for match in service.list_matches(query.to_criteria())
+    ]
 
 
 @router.get("/{match_id}", summary="Get a match with its 6 duels (RN21)")
-def get_match(match_id: ResourceId, service: MatchServiceDependency) -> MatchDetailsView:
+def get_match(
+    match_id: ResourceId, service: MatchServiceDependency
+) -> MatchDetailsView:
     return MatchDetailsView.from_report(service.get(match_id))
 
 

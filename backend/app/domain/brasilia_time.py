@@ -5,7 +5,9 @@ from app.domain.exceptions import InvalidInputError
 
 BRASILIA = timezone(timedelta(hours=-3))
 INPUT_FORMAT = "AAAA-MM-DDTHH:MM-03:00"
-INPUT_PATTERN = re.compile(r"([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})-03:00")
+INPUT_PATTERN = re.compile(
+    r"([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})-03:00"
+)
 
 
 def parse_brasilia_datetime(text: str) -> datetime:

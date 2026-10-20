@@ -1,6 +1,10 @@
 from collections.abc import Collection
 
-from app.domain.exceptions import ClubNotFoundError, MatchNotFoundError, PlayerNotFoundError
+from app.domain.exceptions import (
+    ClubNotFoundError,
+    MatchNotFoundError,
+    PlayerNotFoundError,
+)
 from app.models import Club, Match, Player
 from app.repositories.club_repository import ClubRepository
 
@@ -11,7 +15,9 @@ def ensure_player_found(player: Player | None) -> Player:
     return player
 
 
-def ensure_players_found(players: list[Player], player_ids: Collection[int]) -> list[Player]:
+def ensure_players_found(
+    players: list[Player], player_ids: Collection[int]
+) -> list[Player]:
     if len(players) < len(player_ids):
         raise PlayerNotFoundError
     return players
