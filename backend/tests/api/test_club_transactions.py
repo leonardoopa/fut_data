@@ -78,9 +78,7 @@ def test_documented_history_without_filters_lists_the_most_recent_first(
     body = history(client, club_id)
 
     assert [item["type"] for item in body["data"]] == ["VENDA", "COMPRA"]
-    assert {
-        key: body["data"][1][key] for key in DOCUMENTED_PURCHASE
-    } == DOCUMENTED_PURCHASE
+    assert {key: body["data"][1][key] for key in DOCUMENTED_PURCHASE} == DOCUMENTED_PURCHASE
     assert body["summary"] == {
         "total_spent": 38.85,
         "total_received": 35.7,
@@ -95,9 +93,7 @@ def test_transactions_at_the_same_moment_are_ordered_by_id_descending(
     client: TestClient,
 ) -> None:
     club_id = register_club(client)["id"]
-    players = [
-        insert_player(name) for name in ("Primeiro Comprado", "Segundo Comprado")
-    ]
+    players = [insert_player(name) for name in ("Primeiro Comprado", "Segundo Comprado")]
     for player in players:
         buy(client, player.id, club_id)
 
@@ -128,9 +124,7 @@ def test_cash_is_always_the_initial_cash_plus_every_cash_change(
 
 def test_history_filtered_by_player(client: TestClient) -> None:
     club_id = register_club(client)["id"]
-    followed, other = (
-        insert_player(name) for name in ("Seguido Aqui", "Outro Jogador")
-    )
+    followed, other = (insert_player(name) for name in ("Seguido Aqui", "Outro Jogador"))
     for player in (followed, other):
         buy(client, player.id, club_id)
 
@@ -185,9 +179,7 @@ def test_transaction_keeps_the_player_name_of_the_moment(
         ({"player_id": "01"}, "player_id"),
     ],
 )
-def test_invalid_filter_is_400(
-    client: TestClient, params: dict[str, str], field: str
-) -> None:
+def test_invalid_filter_is_400(client: TestClient, params: dict[str, str], field: str) -> None:
     club_id = register_club(client)["id"]
 
     response = client.get(transactions_url(club_id), params=params)
@@ -206,10 +198,7 @@ def test_missing_or_deleted_player_in_the_filter_is_404(client: TestClient) -> N
     ]
 
     assert [response.status_code for response in responses] == [404, 404]
-    assert all(
-        response.json() == {"message": "Jogador não encontrado."}
-        for response in responses
-    )
+    assert all(response.json() == {"message": "Jogador não encontrado."} for response in responses)
 
 
 @pytest.mark.parametrize("club_id", ["999999", "abc", "0"])

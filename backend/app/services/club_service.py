@@ -24,9 +24,7 @@ class ClubDetails:
 
 
 class ClubService:
-    def __init__(
-        self, clubs: ClubRepository, contracts: ContractRepository, clock: Clock
-    ) -> None:
+    def __init__(self, clubs: ClubRepository, contracts: ContractRepository, clock: Clock) -> None:
         self._clubs = clubs
         self._contracts = contracts
         self._clock = clock

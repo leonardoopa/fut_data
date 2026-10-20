@@ -67,30 +67,21 @@ def test_positions_that_do_not_close_the_formation_are_refused(
 
 @pytest.mark.parametrize("club_id", [None, CLUB_ID + 1])
 def test_player_outside_the_squad_is_refused(club_id: int | None) -> None:
-    lineup = [
-        *starters("GOL", "ZAG", "LAT", "ATA"),
-        FakeStarter("ATA", club_id=club_id),
-    ]
+    lineup = [*starters("GOL", "ZAG", "LAT", "ATA"), FakeStarter("ATA", club_id=club_id)]
 
     with pytest.raises(StarterNotInSquadError):
         ensure_lineup_allowed(CLUB_ID, Formation.TWO_TWO, lineup)
 
 
 def test_sick_player_is_refused() -> None:
-    lineup = [
-        *starters("GOL", "ZAG", "LAT", "ATA"),
-        FakeStarter("ATA", condition="DOENTE"),
-    ]
+    lineup = [*starters("GOL", "ZAG", "LAT", "ATA"), FakeStarter("ATA", condition="DOENTE")]
 
     with pytest.raises(SickStarterError):
         ensure_lineup_allowed(CLUB_ID, Formation.TWO_TWO, lineup)
 
 
 def test_unfit_player_can_start() -> None:
-    lineup = [
-        *starters("GOL", "ZAG", "LAT", "ATA"),
-        FakeStarter("ATA", "MAL_CONDICIONADO"),
-    ]
+    lineup = [*starters("GOL", "ZAG", "LAT", "ATA"), FakeStarter("ATA", "MAL_CONDICIONADO")]
 
     ensure_lineup_allowed(CLUB_ID, Formation.TWO_TWO, lineup)
 
@@ -102,12 +93,8 @@ def test_repeated_starters_are_refused() -> None:
         ensure_distinct_starters([1, 2, 3, 4, 1])
 
 
-@pytest.mark.parametrize(
-    ("starter_count", "complete"), [(5, True), (4, False), (0, False)]
-)
-def test_lineup_is_complete_only_with_the_five_starters(
-    starter_count: int, complete: bool
-) -> None:
+@pytest.mark.parametrize(("starter_count", "complete"), [(5, True), (4, False), (0, False)])
+def test_lineup_is_complete_only_with_the_five_starters(starter_count: int, complete: bool) -> None:
     assert is_lineup_complete(starter_count) is complete
 
 

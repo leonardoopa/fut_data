@@ -65,9 +65,7 @@ def test_documented_standings_after_four_matches() -> None:
 
 
 def test_draw_gives_one_point_to_each_club() -> None:
-    standings = compute_standings(
-        (AGUIAS, DELTA), [FakeMatch(AGUIAS.id, DELTA.id, 2, 2)]
-    )
+    standings = compute_standings((AGUIAS, DELTA), [FakeMatch(AGUIAS.id, DELTA.id, 2, 2)])
 
     assert [(row.club_name, row.draws, row.points) for row in standings] == [
         ("Águias FC", 1, 1),
@@ -81,12 +79,7 @@ def test_full_tie_follows_the_alphabetical_name_then_the_id() -> None:
 
     standings = compute_standings(twins, [])
 
-    assert [(row.position, row.club_id) for row in standings] == [
-        (1, 5),
-        (2, 8),
-        (3, 3),
-        (4, 9),
-    ]
+    assert [(row.position, row.club_id) for row in standings] == [(1, 5), (2, 8), (3, 3), (4, 9)]
 
 
 def test_league_without_clubs_has_empty_standings() -> None:

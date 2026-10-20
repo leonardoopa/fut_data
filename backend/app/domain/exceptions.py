@@ -47,9 +47,7 @@ class AgilityAboveCapError(InvalidInputError):
 
 class AttributesTotalTooHighError(InvalidInputError):
     def __init__(self, maximum: int) -> None:
-        super().__init__(
-            f"A soma dos seis atributos técnicos não pode passar de {maximum}."
-        )
+        super().__init__(f"A soma dos seis atributos técnicos não pode passar de {maximum}.")
 
 
 class PotentialBelowHighestAttributeError(InvalidInputError):
@@ -77,9 +75,7 @@ class ValueRangeInvertedError(InvalidInputError):
 
 
 class FreeWithClubFilterError(InvalidInputError):
-    message = (
-        "free=true não pode ser combinado com club_id: jogador livre não tem clube."
-    )
+    message = "free=true não pode ser combinado com club_id: jogador livre não tem clube."
 
 
 class AcronymMismatchError(InvalidInputError):
@@ -90,9 +86,7 @@ class AcronymMismatchError(InvalidInputError):
 
 
 class LoyaltyNotInFutureError(InvalidInputError):
-    message = (
-        "O fim da fidelidade (loyalty_until) deve ser posterior ao momento da compra."
-    )
+    message = "O fim da fidelidade (loyalty_until) deve ser posterior ao momento da compra."
 
 
 class LoyaltyTooLongError(InvalidInputError):
@@ -109,9 +103,7 @@ class PositionLockedError(BusinessRuleError):
 
 class AgeDecreaseError(BusinessRuleError):
     def __init__(self, current_age: int) -> None:
-        super().__init__(
-            f"A idade não pode ser menor que a atual ({current_age} anos)."
-        )
+        super().__init__(f"A idade não pode ser menor que a atual ({current_age} anos).")
 
 
 class SickToFitError(BusinessRuleError):
@@ -119,9 +111,7 @@ class SickToFitError(BusinessRuleError):
 
 
 class PlayerInClubDeletionError(BusinessRuleError):
-    message = (
-        "Só jogador livre pode ser excluído; este jogador está no elenco de um clube."
-    )
+    message = "Só jogador livre pode ser excluído; este jogador está no elenco de um clube."
 
 
 class ClubNameTakenError(BusinessRuleError):
@@ -171,9 +161,7 @@ class MatchNotFoundError(NotFoundError):
 
 
 class RepeatedStartersError(InvalidInputError):
-    message = (
-        "Os ids de player_ids devem ser distintos: um jogador não entra duas vezes."
-    )
+    message = "Os ids de player_ids devem ser distintos: um jogador não entra duas vezes."
 
 
 class SameClubMatchError(InvalidInputError):

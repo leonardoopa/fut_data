@@ -40,9 +40,7 @@ INITIAL_CONDITION = Condition.APTO
 
 def validate_name(name: str) -> str:
     if not NAME_MIN_LENGTH <= len(name) <= NAME_MAX_LENGTH:
-        raise InvalidInputError(
-            f"deve ter de {NAME_MIN_LENGTH} a {NAME_MAX_LENGTH} caracteres."
-        )
+        raise InvalidInputError(f"deve ter de {NAME_MIN_LENGTH} a {NAME_MAX_LENGTH} caracteres.")
     if count_words(name) < NAME_MIN_WORDS:
         raise InvalidInputError(f"deve ter pelo menos {NAME_MIN_WORDS} palavras.")
     if any(character in string.digits for character in name):

@@ -30,9 +30,7 @@ def club_id(client: TestClient) -> int:
 @pytest.fixture
 def player_id(client: TestClient) -> int:
     player_id = register_player(client)["id"]
-    client.patch(
-        f"{player_url(player_id)}/condition", json={"condition": "MAL_CONDICIONADO"}
-    )
+    client.patch(f"{player_url(player_id)}/condition", json={"condition": "MAL_CONDICIONADO"})
     return player_id
 
 
@@ -82,36 +80,15 @@ def test_player_up_to_30_pays_no_fee(client: TestClient, club_id: int) -> None:
     ("body", "message"),
     [
         ({"loyalty_until": "2027-03-02T10:15-03:00"}, "Campo club_id: é obrigatório."),
-        (
-            {"club_id": None, "loyalty_until": "2027-03-02T10:15-03:00"},
-            "Campo club_id:",
-        ),
-        (
-            {"club_id": 0, "loyalty_until": "2027-03-02T10:15-03:00"},
-            "Campo club_id: deve ser",
-        ),
-        (
-            {"club_id": -1, "loyalty_until": "2027-03-02T10:15-03:00"},
-            "Campo club_id: deve ser",
-        ),
-        (
-            {"club_id": "1", "loyalty_until": "2027-03-02T10:15-03:00"},
-            "Campo club_id: deve ser",
-        ),
-        (
-            {"club_id": 1.5, "loyalty_until": "2027-03-02T10:15-03:00"},
-            "Campo club_id: deve ser",
-        ),
+        ({"club_id": None, "loyalty_until": "2027-03-02T10:15-03:00"}, "Campo club_id:"),
+        ({"club_id": 0, "loyalty_until": "2027-03-02T10:15-03:00"}, "Campo club_id: deve ser"),
+        ({"club_id": -1, "loyalty_until": "2027-03-02T10:15-03:00"}, "Campo club_id: deve ser"),
+        ({"club_id": "1", "loyalty_until": "2027-03-02T10:15-03:00"}, "Campo club_id: deve ser"),
+        ({"club_id": 1.5, "loyalty_until": "2027-03-02T10:15-03:00"}, "Campo club_id: deve ser"),
         ({"club_id": 1}, "Campo loyalty_until: é obrigatório."),
-        (
-            {"club_id": 1, "loyalty_until": "2027-03-02T10:15:00-03:00"},
-            "Campo loyalty_until:",
-        ),
+        ({"club_id": 1, "loyalty_until": "2027-03-02T10:15:00-03:00"}, "Campo loyalty_until:"),
         ({"club_id": 1, "loyalty_until": "2027-03-02T10:15Z"}, "Campo loyalty_until:"),
-        (
-            {"club_id": 1, "loyalty_until": "2027-02-30T10:15-03:00"},
-            "Campo loyalty_until:",
-        ),
+        ({"club_id": 1, "loyalty_until": "2027-02-30T10:15-03:00"}, "Campo loyalty_until:"),
         ({"club_id": 1, "loyalty_until": 20270302}, "Campo loyalty_until:"),
     ],
 )
@@ -143,18 +120,14 @@ def test_loyalty_outside_the_window_is_400_and_nothing_is_written(
     assert_nothing_bought(player_id, club_id)
 
 
-@pytest.mark.parametrize(
-    "loyalty_until", ["2026-11-02T10:16-03:00", "2029-11-01T10:15-03:00"]
-)
+@pytest.mark.parametrize("loyalty_until", ["2026-11-02T10:16-03:00", "2029-11-01T10:15-03:00"])
 def test_loyalty_at_the_edges_of_the_window_is_accepted(
     client: TestClient, player_id: int, club_id: int, loyalty_until: str
 ) -> None:
     assert buy(client, player_id, club_id, loyalty_until).status_code == 200
 
 
-def test_missing_club_is_404_and_nothing_is_written(
-    client: TestClient, player_id: int
-) -> None:
+def test_missing_club_is_404_and_nothing_is_written(client: TestClient, player_id: int) -> None:
     response = buy(client, player_id, 999999)
 
     assert response.status_code == 404
@@ -165,27 +138,21 @@ def test_missing_club_is_404_and_nothing_is_written(
 def test_missing_or_deleted_player_is_404(client: TestClient, club_id: int) -> None:
     deleted = insert_player("Fora Daqui", deleted_at=timezone.now())
 
-    responses = [
-        buy(client, player, club_id) for player in (999999, deleted.id, "abc", "01")
-    ]
+    responses = [buy(client, player, club_id) for player in (999999, deleted.id, "abc", "01")]
 
     assert [response.status_code for response in responses] == [404, 404, 404, 404]
     assert responses[1].json() == {"message": "Jogador não encontrado."}
     assert stored_cash(club_id) == Decimal("300.00")
 
 
-def test_player_who_is_not_free_is_409(
-    client: TestClient, player_id: int, club_id: int
-) -> None:
+def test_player_who_is_not_free_is_409(client: TestClient, player_id: int, club_id: int) -> None:
     buy(client, player_id, club_id)
     other_club_id = register_club(client, name="Sport Recife", acronym="SPR")["id"]
 
     response = buy(client, player_id, other_club_id)
 
     assert response.status_code == 409
-    assert response.json() == {
-        "message": "O jogador não está livre: já pertence a um clube."
-    }
+    assert response.json() == {"message": "O jogador não está livre: já pertence a um clube."}
     assert stored_cash(other_club_id) == Decimal("300.00")
     assert MarketTransaction.objects.count() == 1
 
@@ -202,9 +169,7 @@ def test_cost_above_half_of_the_cash_is_409(client: TestClient, club_id: int) ->
     assert_nothing_bought(player.id, club_id)
 
 
-def test_thirteenth_player_is_409(
-    client: TestClient, player_id: int, club_id: int
-) -> None:
+def test_thirteenth_player_is_409(client: TestClient, player_id: int, club_id: int) -> None:
     club = Club.objects.get(pk=club_id)
     for number in range(12):
         sign_player(insert_player(f"Titular {chr(65 + number)}").id, club)

@@ -12,11 +12,7 @@ class MatchRepository:
         MatchDuel.objects.bulk_create(duels)
 
     def get(self, match_id: int) -> Match | None:
-        return (
-            Match.objects.select_related("home_club", "away_club")
-            .filter(pk=match_id)
-            .first()
-        )
+        return Match.objects.select_related("home_club", "away_club").filter(pk=match_id).first()
 
     def duels_of(self, match_id: int) -> list[MatchDuel]:
         return list(MatchDuel.objects.filter(match_id=match_id).order_by("order"))
@@ -30,8 +26,4 @@ class MatchRepository:
         return list(matches.order_by("-played_at", "-id"))
 
     def list_scores(self) -> list[Match]:
-        return list(
-            Match.objects.only(
-                "home_club_id", "away_club_id", "home_goals", "away_goals"
-            )
-        )
+        return list(Match.objects.only("home_club_id", "away_club_id", "home_goals", "away_goals"))

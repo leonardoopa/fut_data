@@ -35,9 +35,7 @@ class Club(models.Model):
     class Meta:
         db_table = "clubes"
         constraints = (
-            models.CheckConstraint(
-                condition=models.Q(cash__gte=0), name="ck_clubes_cash_positive"
-            ),
+            models.CheckConstraint(condition=models.Q(cash__gte=0), name="ck_clubes_cash_positive"),
             values_check("clubes", "formation", Formation),
         )
 
@@ -52,9 +50,7 @@ class Club(models.Model):
 
     @property
     def squad_value(self) -> Decimal:
-        return calculate_squad_value(
-            player.market_value for player in self.players.all()
-        )
+        return calculate_squad_value(player.market_value for player in self.players.all())
 
     @property
     def net_worth(self) -> Decimal:

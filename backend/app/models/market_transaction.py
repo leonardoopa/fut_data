@@ -37,9 +37,7 @@ class MarketTransaction(models.Model):
     class Meta:
         db_table = "transacoes"
         indexes = (
-            models.Index(
-                fields=("club", "created_at"), name="ix_transacoes_club_created_at"
-            ),
+            models.Index(fields=("club", "created_at"), name="ix_transacoes_club_created_at"),
         )
         constraints = (values_check("transacoes", "type", TransactionType),)
 

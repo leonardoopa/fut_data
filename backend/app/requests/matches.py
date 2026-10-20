@@ -20,9 +20,7 @@ class MatchRequest(BaseModel):
         return self
 
     def to_fixture(self) -> MatchFixture:
-        return MatchFixture(
-            home_club_id=self.home_club_id, away_club_id=self.away_club_id
-        )
+        return MatchFixture(home_club_id=self.home_club_id, away_club_id=self.away_club_id)
 
 
 class MatchListQuery(BaseModel):

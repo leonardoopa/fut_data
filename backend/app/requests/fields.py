@@ -33,13 +33,9 @@ def parse_datetime(value: object) -> datetime:
     return parse_brasilia_datetime(parse_string(value))
 
 
-StrictInteger = Annotated[
-    int, PlainValidator(parse_strict_integer, json_schema_input_type=int)
-]
+StrictInteger = Annotated[int, PlainValidator(parse_strict_integer, json_schema_input_type=int)]
 PositiveId = Annotated[StrictInteger, Field(ge=1)]
-NormalizedText = Annotated[
-    str, PlainValidator(parse_normalized_text, json_schema_input_type=str)
-]
+NormalizedText = Annotated[str, PlainValidator(parse_normalized_text, json_schema_input_type=str)]
 PlayerName = Annotated[NormalizedText, AfterValidator(player.validate_name)]
 ClubName = Annotated[NormalizedText, AfterValidator(club.validate_name)]
 Acronym = Annotated[
@@ -47,6 +43,4 @@ Acronym = Annotated[
     PlainValidator(parse_string, json_schema_input_type=str),
     AfterValidator(club.validate_acronym),
 ]
-BrasiliaDateTime = Annotated[
-    datetime, PlainValidator(parse_datetime, json_schema_input_type=str)
-]
+BrasiliaDateTime = Annotated[datetime, PlainValidator(parse_datetime, json_schema_input_type=str)]

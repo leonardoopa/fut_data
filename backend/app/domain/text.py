@@ -27,9 +27,7 @@ def count_words(text: str) -> int:
 def remove_accents(text: str) -> str:
     decomposed = unicodedata.normalize("NFD", text)
     return "".join(
-        character
-        for character in decomposed
-        if unicodedata.category(character) != ACCENT_CATEGORY
+        character for character in decomposed if unicodedata.category(character) != ACCENT_CATEGORY
     )
 
 

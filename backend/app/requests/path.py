@@ -19,6 +19,4 @@ def parse_resource_id(raw: object) -> int:
     return resource_id
 
 
-ResourceId = Annotated[
-    int, PlainValidator(parse_resource_id, json_schema_input_type=int)
-]
+ResourceId = Annotated[int, PlainValidator(parse_resource_id, json_schema_input_type=int)]

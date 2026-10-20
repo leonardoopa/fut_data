@@ -108,9 +108,7 @@ FORMATION_POSITIONS: dict[str, tuple[str, ...]] = {
 
 def sign_squad(club: Club, positions: Sequence[str]) -> list[Player]:
     players = [
-        insert_player(
-            f"Titular {club.acronym} {chr(ord('A') + index)}", position=position
-        )
+        insert_player(f"Titular {club.acronym} {chr(ord('A') + index)}", position=position)
         for index, position in enumerate(positions)
     ]
     for player in players:
@@ -118,32 +116,22 @@ def sign_squad(club: Club, positions: Sequence[str]) -> list[Player]:
     return players
 
 
-def put_lineup(
-    client: TestClient, club_id: int | str, formation: Any, player_ids: Any
-) -> Response:
-    return client.put(
-        lineup_url(club_id), json={"formation": formation, "player_ids": player_ids}
-    )
+def put_lineup(client: TestClient, club_id: int | str, formation: Any, player_ids: Any) -> Response:
+    return client.put(lineup_url(club_id), json={"formation": formation, "player_ids": player_ids})
 
 
-def field_lineup(
-    client: TestClient, club: Club, formation: str, players: Sequence[Player]
-) -> None:
+def field_lineup(client: TestClient, club: Club, formation: str, players: Sequence[Player]) -> None:
     response = put_lineup(client, club.id, formation, [player.id for player in players])
     assert response.status_code == 200, response.text
 
 
 def ready_club(client: TestClient, acronym: str, formation: str = "2-1-1") -> Club:
     club = create_club(acronym, formation=None)
-    field_lineup(
-        client, club, formation, sign_squad(club, FORMATION_POSITIONS[formation])
-    )
+    field_lineup(client, club, formation, sign_squad(club, FORMATION_POSITIONS[formation]))
     return club
 
 
-def buy_squad(
-    client: TestClient, club_id: int, positions: Sequence[str]
-) -> list[Player]:
+def buy_squad(client: TestClient, club_id: int, positions: Sequence[str]) -> list[Player]:
     players = [
         insert_player(f"Comprado {chr(ord('A') + index)}", position=position)
         for index, position in enumerate(positions)
@@ -172,10 +160,7 @@ def register_club(client: TestClient, **changes: Any) -> dict[str, Any]:
 
 
 def buy(
-    client: TestClient,
-    player_id: int | str,
-    club_id: Any,
-    loyalty_until: Any = LOYALTY_UNTIL,
+    client: TestClient, player_id: int | str, club_id: Any, loyalty_until: Any = LOYALTY_UNTIL
 ) -> Response:
     return client.post(
         f"{player_url(player_id)}/buy",
@@ -193,9 +178,7 @@ def stored_cash(club_id: int) -> Decimal:
 
 def cash_change_total(club_id: int) -> Decimal:
     return sum(
-        MarketTransaction.objects.filter(club_id=club_id).values_list(
-            "cash_change", flat=True
-        ),
+        MarketTransaction.objects.filter(club_id=club_id).values_list("cash_change", flat=True),
         Decimal(0),
     )
 
@@ -225,9 +208,7 @@ DOCUMENTED_SALE: dict[str, Any] = {
 
 def buy_documented_example(client: TestClient) -> tuple[int, int]:
     player_id = register_player(client)["id"]
-    client.patch(
-        f"{player_url(player_id)}/condition", json={"condition": "MAL_CONDICIONADO"}
-    )
+    client.patch(f"{player_url(player_id)}/condition", json={"condition": "MAL_CONDICIONADO"})
     club_id = register_club(client)["id"]
     assert buy(client, player_id, club_id).status_code == 200
     return player_id, club_id

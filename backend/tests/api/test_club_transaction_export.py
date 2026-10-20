@@ -16,12 +16,8 @@ from tests.api.factories import (
 pytestmark = pytest.mark.usefixtures("clock")
 
 HEADER = b"data_hora;tipo;jogador;valor;taxa_ou_comissao;multa;lucro;variacao_caixa\n"
-DOCUMENTED_SALE_ROW = (
-    b"2026-11-05T16:40:00-03:00;VENDA;Meia Lua;40,00;0,30;4,00;3,00;35,70\n"
-)
-DOCUMENTED_PURCHASE_ROW = (
-    b"2026-11-02T10:15:00-03:00;COMPRA;Meia Lua;37,00;1,85;0,00;;-38,85\n"
-)
+DOCUMENTED_SALE_ROW = b"2026-11-05T16:40:00-03:00;VENDA;Meia Lua;40,00;0,30;4,00;3,00;35,70\n"
+DOCUMENTED_PURCHASE_ROW = b"2026-11-02T10:15:00-03:00;COMPRA;Meia Lua;37,00;1,85;0,00;;-38,85\n"
 
 
 @pytest.fixture
@@ -79,9 +75,7 @@ def test_export_is_utf8_without_bom(client: TestClient) -> None:
 
 def test_player_id_filter_keeps_only_that_player(client: TestClient) -> None:
     club_id = register_club(client)["id"]
-    followed, other = (
-        insert_player(name) for name in ("Seguido Aqui", "Outro Jogador")
-    )
+    followed, other = (insert_player(name) for name in ("Seguido Aqui", "Outro Jogador"))
     for player in (followed, other):
         buy(client, player.id, club_id)
 
@@ -105,20 +99,11 @@ def test_name_with_separator_or_quotes_is_quoted(
 
     rows = export(client, club_id).split(b"\n")
 
-    assert (
-        rows[1]
-        == b"2026-11-02T10:15:00-03:00;COMPRA;"
-        + csv_field
-        + b";10,00;0,00;0,00;;-10,00"
-    )
+    assert rows[1] == b"2026-11-02T10:15:00-03:00;COMPRA;" + csv_field + b";10,00;0,00;0,00;;-10,00"
 
 
-@pytest.mark.parametrize(
-    "params", [{"type": "compra"}, {"type": ""}, {"player_id": "0"}]
-)
-def test_invalid_filter_is_a_json_400(
-    client: TestClient, params: dict[str, str]
-) -> None:
+@pytest.mark.parametrize("params", [{"type": "compra"}, {"type": ""}, {"player_id": "0"}])
+def test_invalid_filter_is_a_json_400(client: TestClient, params: dict[str, str]) -> None:
     club_id = register_club(client)["id"]
 
     response = client.get(export_url(club_id), params=params)

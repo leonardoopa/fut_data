@@ -16,9 +16,7 @@ class MatchSideView(BaseModel):
 
     @classmethod
     def of(cls, club: Club, formation: str, goals: int) -> Self:
-        return cls(
-            club_id=club.id, club_name=club.name, formation=formation, goals=goals
-        )
+        return cls(club_id=club.id, club_name=club.name, formation=formation, goals=goals)
 
 
 class MatchView(BaseModel):
@@ -35,12 +33,8 @@ class MatchView(BaseModel):
         return cls(
             id=match.id,
             played_at=match.played_at,
-            home=MatchSideView.of(
-                match.home_club, match.home_formation, match.home_goals
-            ),
-            away=MatchSideView.of(
-                match.away_club, match.away_formation, match.away_goals
-            ),
+            home=MatchSideView.of(match.home_club, match.home_formation, match.home_goals),
+            away=MatchSideView.of(match.away_club, match.away_formation, match.away_goals),
             result=match.result,
         )
 

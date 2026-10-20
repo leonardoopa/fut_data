@@ -20,6 +20,4 @@ StandingsServiceDependency = Annotated[StandingsService, Depends(get_standings_s
 
 @router.get("", summary="League standings, computed on every read (RN21)")
 def get_standings(service: StandingsServiceDependency) -> list[StandingView]:
-    return [
-        StandingView.from_standing(standing) for standing in service.get_standings()
-    ]
+    return [StandingView.from_standing(standing) for standing in service.get_standings()]

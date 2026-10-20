@@ -23,9 +23,7 @@ from app.domain.valuation import calculate_base_value, calculate_market_value
 def test_base_value_follows_the_specification_examples(
     overall: int, potential: int, registration_age: int, expected: str
 ) -> None:
-    assert calculate_base_value(overall, potential, registration_age) == Decimal(
-        expected
-    )
+    assert calculate_base_value(overall, potential, registration_age) == Decimal(expected)
 
 
 @pytest.mark.parametrize(
@@ -56,9 +54,7 @@ def test_market_value_follows_the_specification_examples(
     ("agility", "expected"),
     [(79, "69.70"), (80, "75.85"), (31, "69.70"), (30, "61.50")],
 )
-def test_agility_effect_changes_exactly_at_the_band_limits(
-    agility: int, expected: str
-) -> None:
+def test_agility_effect_changes_exactly_at_the_band_limits(agility: int, expected: str) -> None:
     market_value = calculate_market_value(
         Decimal("82.00"), Condition.MAL_CONDICIONADO, agility, age=25
     )
@@ -70,9 +66,5 @@ def test_agility_effect_changes_exactly_at_the_band_limits(
     ("age", "expected"),
     [(21, "90.20"), (22, "82.00"), (31, "82.00"), (32, "73.80")],
 )
-def test_age_adjustment_changes_exactly_at_the_band_limits(
-    age: int, expected: str
-) -> None:
-    assert calculate_market_value(Decimal("82.00"), Condition.APTO, 50, age) == Decimal(
-        expected
-    )
+def test_age_adjustment_changes_exactly_at_the_band_limits(age: int, expected: str) -> None:
+    assert calculate_market_value(Decimal("82.00"), Condition.APTO, 50, age) == Decimal(expected)

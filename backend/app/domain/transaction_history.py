@@ -40,9 +40,7 @@ def total(amounts: Iterable[Decimal]) -> Decimal:
     return round_money(sum(amounts, ZERO_MONEY))
 
 
-def summarize_transactions(
-    transactions: Sequence[RecordedTransaction],
-) -> TransactionSummary:
+def summarize_transactions(transactions: Sequence[RecordedTransaction]) -> TransactionSummary:
     purchases = [item for item in transactions if item.type == TransactionType.COMPRA]
     sales = [item for item in transactions if item.type == TransactionType.VENDA]
     return TransactionSummary(

@@ -12,7 +12,5 @@ class ContractRepository:
         )
 
     def active_by_player(self, club_id: int) -> dict[int, Contract]:
-        contracts = Contract.objects.filter(
-            club_id=club_id, status=ContractStatus.ATIVO
-        )
+        contracts = Contract.objects.filter(club_id=club_id, status=ContractStatus.ATIVO)
         return {contract.player_id: contract for contract in contracts}

@@ -25,9 +25,7 @@ def database_scoped[**P, R](endpoint: Callable[P, R]) -> Callable[P, R]:
 
 
 class DatabaseRouter(APIRouter):
-    def add_api_route(
-        self, path: str, endpoint: Callable[..., Any], **kwargs: Any
-    ) -> None:
+    def add_api_route(self, path: str, endpoint: Callable[..., Any], **kwargs: Any) -> None:
         super().add_api_route(path, database_scoped(endpoint), **kwargs)
 
 

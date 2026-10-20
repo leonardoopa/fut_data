@@ -52,9 +52,7 @@ def test_summary_of_the_documented_purchase_and_sale() -> None:
 
 
 def test_summary_of_sales_only_has_nothing_spent() -> None:
-    assert summarize_transactions([SALE]) == money_summary(
-        "0", "35.70", "0.30", "4.00", "3.00"
-    )
+    assert summarize_transactions([SALE]) == money_summary("0", "35.70", "0.30", "4.00", "3.00")
 
 
 def test_total_profit_keeps_the_sign_of_losses() -> None:

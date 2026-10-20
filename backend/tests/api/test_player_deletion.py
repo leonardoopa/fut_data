@@ -3,18 +3,10 @@ from django.utils import timezone
 from fastapi.testclient import TestClient
 
 from app.models import Player
-from tests.api.factories import (
-    PLAYERS_URL,
-    create_club,
-    player_url,
-    register_player,
-    sign_player,
-)
+from tests.api.factories import PLAYERS_URL, create_club, player_url, register_player, sign_player
 
 
-def test_delete_answers_204_without_body_and_only_marks_the_row(
-    client: TestClient,
-) -> None:
+def test_delete_answers_204_without_body_and_only_marks_the_row(client: TestClient) -> None:
     player_id = register_player(client)["id"]
     before = timezone.now()
 
@@ -36,9 +28,7 @@ def test_deleted_player_counts_as_missing_in_every_endpoint(client: TestClient) 
     responses = [
         client.get(player_url(player_id)),
         client.put(player_url(player_id), json=profile),
-        client.patch(
-            f"{player_url(player_id)}/condition", json={"condition": "DOENTE"}
-        ),
+        client.patch(f"{player_url(player_id)}/condition", json={"condition": "DOENTE"}),
         client.delete(player_url(player_id)),
     ]
 
@@ -63,9 +53,7 @@ def test_player_in_a_club_cannot_be_deleted(client: TestClient) -> None:
 def test_delete_ignores_a_body_sent_with_the_request(client: TestClient) -> None:
     player_id = register_player(client)["id"]
 
-    response = client.request(
-        "DELETE", player_url(player_id), json={"reason": "ignored"}
-    )
+    response = client.request("DELETE", player_url(player_id), json={"reason": "ignored"})
 
     assert response.status_code == 204
 

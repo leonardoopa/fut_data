@@ -103,15 +103,9 @@ def filter_by_search_and_value[P: ListedPlayer](
     ]
 
 
-def sort_players[P: ListedPlayer](
-    players: Iterable[P], criteria: Sequence[PlayerSort]
-) -> list[P]:
+def sort_players[P: ListedPlayer](players: Iterable[P], criteria: Sequence[PlayerSort]) -> list[P]:
     keys = [SORT_KEYS[criterion] for criterion in criteria]
     return sorted(
         players,
-        key=lambda player: (
-            *(key(player) for key in keys),
-            name_key(player),
-            player.id,
-        ),
+        key=lambda player: (*(key(player) for key in keys), name_key(player), player.id),
     )

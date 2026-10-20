@@ -14,10 +14,7 @@ class PlayerRepository:
     def lock_active_many(self, player_ids: Iterable[int]) -> list[Player]:
         """Ascending id order avoids deadlocks."""
         return list(
-            Player.objects.active()
-            .select_for_update()
-            .filter(pk__in=player_ids)
-            .order_by("id")
+            Player.objects.active().select_for_update().filter(pk__in=player_ids).order_by("id")
         )
 
     def save(self, player: Player) -> None:
@@ -36,10 +33,6 @@ class PlayerRepository:
         return list(
             Player.objects.active().filter(
                 age__range=(criteria.min_age, criteria.max_age),
-                **{
-                    lookup: value
-                    for lookup, value in column_filters.items()
-                    if value is not None
-                },
+                **{lookup: value for lookup, value in column_filters.items() if value is not None},
             )
         )

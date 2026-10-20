@@ -61,9 +61,7 @@ def test_club_detail_right_after_the_documented_purchase(
     }
 
 
-def test_contract_terms_are_calculated_at_each_query(
-    client: TestClient, clock: FixedClock
-) -> None:
+def test_contract_terms_are_calculated_at_each_query(client: TestClient, clock: FixedClock) -> None:
     _, club_id = buy_documented_example(client)
 
     clock.moment += timedelta(days=100, minutes=1)
@@ -136,15 +134,9 @@ def test_clubs_are_listed_by_name_by_default_without_the_squad(
 def test_clubs_are_listed_by_net_worth_with_ties_broken_by_name(
     client: TestClient, league: None
 ) -> None:
-    epsilon = next(
-        club for club in client.get(CLUBS_URL).json() if club["acronym"] == "EFC"
-    )
+    epsilon = next(club for club in client.get(CLUBS_URL).json() if club["acronym"] == "EFC")
 
-    assert (epsilon["cash"], epsilon["squad_value"], epsilon["net_worth"]) == (
-        290.0,
-        15.0,
-        305.0,
-    )
+    assert (epsilon["cash"], epsilon["squad_value"], epsilon["net_worth"]) == (290.0, 15.0, 305.0)
     assert club_names(client, "?sort=net_worth_asc") == [
         "Gama FC",
         "Beta FC",

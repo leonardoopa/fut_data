@@ -63,9 +63,7 @@ def describe_validation_error(error: RequestValidationError) -> str:
     detail = error.errors()[0]
     if detail["type"] == "json_invalid":
         return INVALID_JSON_MESSAGE
-    field = ".".join(
-        str(part) for part in detail["loc"] if part not in REQUEST_LOCATIONS
-    )
+    field = ".".join(str(part) for part in detail["loc"] if part not in REQUEST_LOCATIONS)
     if field:
         return f"Campo {field}: {describe_field_reason(detail)}"
     if detail["type"] == "value_error":
@@ -82,9 +80,7 @@ def domain_error_handler(status: HTTPStatus) -> ErrorHandler:
     return handle
 
 
-async def handle_validation_error(
-    _: Request, error: RequestValidationError
-) -> JSONResponse:
+async def handle_validation_error(_: Request, error: RequestValidationError) -> JSONResponse:
     return error_response(HTTPStatus.BAD_REQUEST, describe_validation_error(error))
 
 

@@ -33,9 +33,7 @@ def get_player_service(clock: Annotated[Clock, Depends(get_clock)]) -> PlayerSer
 PlayerServiceDependency = Annotated[PlayerService, Depends(get_player_service)]
 
 
-@router.get(
-    "", summary="List players with search, filters, sorting and pagination (RN07)"
-)
+@router.get("", summary="List players with search, filters, sorting and pagination (RN07)")
 def list_players(
     query: Annotated[PlayerListQuery, Query()], service: PlayerServiceDependency
 ) -> PlayerPageView:
@@ -70,9 +68,7 @@ def update_player(
 
 @router.patch("/{player_id}/condition", summary="Change the physical condition")
 def change_player_condition(
-    player_id: ResourceId,
-    body: PlayerConditionRequest,
-    service: PlayerServiceDependency,
+    player_id: ResourceId, body: PlayerConditionRequest, service: PlayerServiceDependency
 ) -> PlayerView:
     return PlayerView.from_model(service.change_condition(player_id, body.condition))
 

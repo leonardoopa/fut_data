@@ -34,12 +34,7 @@ SECTOR_OF_POSITION: dict[Position, Sector] = {
 
 def formation_sectors(defense: int, midfield: int, attack: int) -> Counter[Sector]:
     return Counter(
-        {
-            Sector.GOAL: 1,
-            Sector.DEFENSE: defense,
-            Sector.MIDFIELD: midfield,
-            Sector.ATTACK: attack,
-        }
+        {Sector.GOAL: 1, Sector.DEFENSE: defense, Sector.MIDFIELD: midfield, Sector.ATTACK: attack}
     )
 
 
@@ -67,16 +62,12 @@ def ensure_distinct_starters(player_ids: Sequence[int]) -> None:
         raise RepeatedStartersError
 
 
-def ensure_lineup_allowed(
-    club_id: int, formation: Formation, starters: Sequence[Starter]
-) -> None:
+def ensure_lineup_allowed(club_id: int, formation: Formation, starters: Sequence[Starter]) -> None:
     if any(starter.club_id != club_id for starter in starters):
         raise StarterNotInSquadError
     if any(leaves_lineup(Condition(starter.condition)) for starter in starters):
         raise SickStarterError
-    sectors = Counter(
-        SECTOR_OF_POSITION[Position(starter.position)] for starter in starters
-    )
+    sectors = Counter(SECTOR_OF_POSITION[Position(starter.position)] for starter in starters)
     if sectors != FORMATION_SECTORS[formation]:
         raise FormationMismatchError(formation)
 

@@ -5,22 +5,14 @@ import pytest
 from pydantic import TypeAdapter, ValidationError
 
 from app.domain.enums import Position
-from app.requests.fields import (
-    Acronym,
-    BrasiliaDateTime,
-    ClubName,
-    PlayerName,
-    StrictInteger,
-)
+from app.requests.fields import Acronym, BrasiliaDateTime, ClubName, PlayerName, StrictInteger
 
 
 def validate_json(annotation: Any, raw_json: str) -> Any:
     return TypeAdapter(annotation).validate_json(raw_json)
 
 
-@pytest.mark.parametrize(
-    ("raw_json", "expected"), [("15", 15), ("15.0", 15), ("-3", -3)]
-)
+@pytest.mark.parametrize(("raw_json", "expected"), [("15", 15), ("15.0", 15), ("-3", -3)])
 def test_strict_integer_accepts_json_integers(raw_json: str, expected: int) -> None:
     assert validate_json(StrictInteger, raw_json) == expected
 
@@ -68,8 +60,7 @@ def test_player_name_rejects_invalid_values(raw_json: str, reason: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "raw_json",
-    ['"Águias FC"', '"Santa-Cruz F.C."', '"  Sport   Club do Recife "', '"A B C D E"'],
+    "raw_json", ['"Águias FC"', '"Santa-Cruz F.C."', '"  Sport   Club do Recife "', '"A B C D E"']
 )
 def test_club_name_accepts_letters_spaces_hyphen_and_period(raw_json: str) -> None:
     assert validate_json(ClubName, raw_json)

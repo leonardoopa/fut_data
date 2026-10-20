@@ -86,6 +86,4 @@ class PlayerService:
             min_value=criteria.min_value,
             max_value=criteria.max_value,
         )
-        return paginate(
-            sort_players(selected, criteria.sort), criteria.page, criteria.limit
-        )
+        return paginate(sort_players(selected, criteria.sort), criteria.page, criteria.limit)
