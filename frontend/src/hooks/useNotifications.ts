@@ -16,7 +16,7 @@ export const NotificationsContext = createContext<Notifications | null>(null)
 export function useNotifications(): Notifications {
   const notifications = useContext(NotificationsContext)
   if (!notifications) {
-    throw new Error('useNotifications precisa estar dentro de NotificationsProvider.')
+    throw new Error('useNotifications must be used inside NotificationsProvider.')
   }
   return notifications
 }

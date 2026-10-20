@@ -9,6 +9,6 @@ export function rowOf(text: string, container: HTMLElement = document.body) {
   const row = within(container)
     .getAllByRole('row')
     .find((candidate) => within(candidate).queryByText(text) !== null)
-  if (!row) throw new Error(`Linha de ${text} não encontrada.`)
+  if (!row) throw new Error(`Row for ${text} not found.`)
   return within(row)
 }

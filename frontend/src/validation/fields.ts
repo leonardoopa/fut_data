@@ -15,7 +15,6 @@ function integerRangeMessage(min: number, max: number): string {
   return `Informe um número inteiro de ${min} a ${max}.`
 }
 
-/** V4: repeated spaces count as one before the length is checked. */
 function collapseSpaces(value: string): string {
   return value.replace(/ +/g, ' ')
 }

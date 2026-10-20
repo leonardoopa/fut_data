@@ -72,7 +72,6 @@ export function Popover({
       event.stopPropagation()
       close()
     }
-    // Rolar a página ou a tabela, ou abrir o teclado do celular, move o botão; o painel o acompanha.
     function followButton() {
       const rect = buttonRef.current?.getBoundingClientRect()
       if (rect) setPosition(positionFor(rect))

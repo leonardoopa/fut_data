@@ -53,7 +53,7 @@ export function useApiQuery<T>(fetcher: (() => Promise<T>) | null): ApiQuery<T> 
   }, [fetcher, version, refreshVersion])
 
   const reload = useCallback(() => setVersion((current) => current + 1), [])
-  // Busca de novo só o que já foi carregado; na primeira carga a busca inicial já está em curso.
+  // Refetches only what was already loaded; the first load is already in flight.
   const revalidate = useCallback(() => {
     if (hasResult.current) reload()
   }, [reload])
