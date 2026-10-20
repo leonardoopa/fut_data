@@ -10,8 +10,6 @@ YOUNG_PROSPECT_MAX_AGE = 21
 
 @dataclass(frozen=True)
 class OverallBand:
-    """Faixa de overall em que cada ponto vale `value_per_point` moedas."""
-
     first: int
     last: int
     value_per_point: Decimal
@@ -42,7 +40,6 @@ MAXIMUM_DISCOUNT = Decimal(-40)
 
 
 def calculate_base_value(overall: int, potential: int, registration_age: int) -> Decimal:
-    """Valor base, calculado uma única vez no cadastro (RN06)."""
     overall_part = sum((band.value_for(overall) for band in OVERALL_BANDS), Decimal(0))
     if registration_age <= YOUNG_PROSPECT_MAX_AGE:
         overall_part = percent_of(overall_part, 100 + potential - overall)
@@ -50,7 +47,6 @@ def calculate_base_value(overall: int, potential: int, registration_age: int) ->
 
 
 def condition_discount(condition: Condition, agility: int) -> Decimal:
-    """Desconto pela condição física, ajustado pela agilidade (RN02 e RN03)."""
     discount = CONDITION_DISCOUNTS[condition]
     if condition == Condition.APTO:
         return discount
@@ -62,7 +58,6 @@ def condition_discount(condition: Condition, agility: int) -> Decimal:
 
 
 def age_adjustment(age: int) -> Decimal:
-    """Ajuste pela idade atual (RN04)."""
     if age <= YOUNG_PROSPECT_MAX_AGE:
         return AGE_ADJUSTMENT
     if age >= VETERAN_MIN_AGE:
@@ -73,7 +68,6 @@ def age_adjustment(age: int) -> Decimal:
 def calculate_market_value(
     base_value: Decimal, condition: Condition, agility: int, age: int
 ) -> Decimal:
-    """Valor de mercado do momento, calculado a cada consulta (RN05)."""
     total_percentage = max(
         age_adjustment(age) - condition_discount(condition, agility), MAXIMUM_DISCOUNT
     )

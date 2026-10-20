@@ -3,8 +3,6 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class MatchFixture:
-    """Confronto pedido: mandante e visitante (RN20)."""
-
     home_club_id: int
     away_club_id: int
 
