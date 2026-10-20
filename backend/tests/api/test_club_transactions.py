@@ -36,7 +36,6 @@ ZERO_SUMMARY = {
 
 @pytest.fixture
 def documented_history(client: TestClient, clock: FixedClock) -> tuple[int, int]:
-    """Compra e venda do enunciado; devolve os ids do jogador e do clube."""
     player_id, club_id = buy_documented_example(client)
     clock.moment = SOLD_AT
     recover_and_sell(client, player_id)

@@ -106,7 +106,6 @@ def club_names(client: TestClient, query: str = "") -> list[str]:
 
 
 def buy_and_revalue(client: TestClient, club_id: int, base_value: str) -> None:
-    """Compra um jogador de 10,00 e depois muda o valor dele, mudando o patrimônio do clube."""
     player = insert_player("Rico Valor", base_value=Decimal("10.00"))
     assert buy(client, player.id, club_id).status_code == 200
     Player.objects.filter(pk=player.id).update(base_value=Decimal(base_value))
@@ -114,7 +113,6 @@ def buy_and_revalue(client: TestClient, club_id: int, base_value: str) -> None:
 
 @pytest.fixture
 def league(client: TestClient, clock: FixedClock) -> None:
-    """Patrimônios: Gama 296,00; Beta e Delta 300,00; Épsilon 305,00."""
     gama_id = register_club(client, name="Gama FC", acronym="GFC")["id"]
     epsilon_id = register_club(client, name="Épsilon FC", acronym="EFC")["id"]
     register_club(client, name="Delta FC", acronym="DFC")

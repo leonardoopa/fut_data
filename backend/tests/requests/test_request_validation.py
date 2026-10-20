@@ -1,5 +1,3 @@
-"""Confere, por uma rota de teste, como a API responde a pedidos inválidos (V1, V2 e V8)."""
-
 from typing import Annotated, Self
 
 import pytest

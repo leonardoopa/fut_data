@@ -1,9 +1,3 @@
-"""Montagem dos cenários dos testes de API.
-
-`create_club`, `sign_player` e `sign_squad` montam pelo ORM os cenários que não dependem do
-mercado; `field_lineup` escala os titulares pela própria API.
-"""
-
 from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal
@@ -72,10 +66,6 @@ def register_player(client: TestClient, **changes: Any) -> dict[str, Any]:
 
 
 def insert_player(name: str, **fields: Any) -> Player:
-    """Jogador gravado direto no banco, com o valor base escolhido pelo cenário.
-
-    Com agilidade 50, APTO e idade entre 22 e 31 anos, o valor de mercado é o valor base.
-    """
     defaults: dict[str, Any] = {
         "position": "MEI",
         "agility": 50,
@@ -117,7 +107,6 @@ FORMATION_POSITIONS: dict[str, tuple[str, ...]] = {
 
 
 def sign_squad(club: Club, positions: Sequence[str]) -> list[Player]:
-    """Um jogador do elenco para cada posição, com nomes que seguem a ordem das posições."""
     players = [
         insert_player(f"Titular {club.acronym} {chr(ord('A') + index)}", position=position)
         for index, position in enumerate(positions)
@@ -137,14 +126,12 @@ def field_lineup(client: TestClient, club: Club, formation: str, players: Sequen
 
 
 def ready_club(client: TestClient, acronym: str, formation: str = "2-1-1") -> Club:
-    """Clube com elenco de 5 e a escalação completa."""
     club = create_club(acronym, formation=None)
     field_lineup(client, club, formation, sign_squad(club, FORMATION_POSITIONS[formation]))
     return club
 
 
 def buy_squad(client: TestClient, club_id: int, positions: Sequence[str]) -> list[Player]:
-    """Um jogador livre para cada posição, comprado pelo clube no mercado."""
     players = [
         insert_player(f"Comprado {chr(ord('A') + index)}", position=position)
         for index, position in enumerate(positions)
@@ -220,10 +207,6 @@ DOCUMENTED_SALE: dict[str, Any] = {
 
 
 def buy_documented_example(client: TestClient) -> tuple[int, int]:
-    """Compra do enunciado: Meia Lua MAL_CONDICIONADO (37,00) pelo Águias FC.
-
-    Precisa do relógio fixo no momento da compra; devolve os ids do jogador e do clube.
-    """
     player_id = register_player(client)["id"]
     client.patch(f"{player_url(player_id)}/condition", json={"condition": "MAL_CONDICIONADO"})
     club_id = register_club(client)["id"]
@@ -232,6 +215,5 @@ def buy_documented_example(client: TestClient) -> tuple[int, int]:
 
 
 def recover_and_sell(client: TestClient, player_id: int) -> Response:
-    """Venda do enunciado: o jogador volta a APTO (40,00) antes da venda."""
     client.patch(f"{player_url(player_id)}/condition", json={"condition": "APTO"})
     return sell(client, player_id)

@@ -8,8 +8,6 @@ from tests.api.factories import BOUGHT_AT
 
 
 class FixedClock:
-    """Relógio parado no instante escolhido pelo teste."""
-
     def __init__(self, moment: datetime) -> None:
         self.moment = moment
 
@@ -19,7 +17,6 @@ class FixedClock:
 
 @pytest.fixture
 def clock(client: TestClient) -> FixedClock:
-    """Para o relógio dos casos de uso no momento da compra do exemplo do enunciado."""
     fixed_clock = FixedClock(BOUGHT_AT)
     client.app.dependency_overrides[get_clock] = lambda: fixed_clock
     return fixed_clock
