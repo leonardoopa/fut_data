@@ -39,7 +39,6 @@ INITIAL_CONDITION = Condition.APTO
 
 
 def validate_name(name: str) -> str:
-    """Nome do jogador já normalizado pela V4: tamanho, palavras e dígitos."""
     if not NAME_MIN_LENGTH <= len(name) <= NAME_MAX_LENGTH:
         raise InvalidInputError(f"deve ter de {NAME_MIN_LENGTH} a {NAME_MAX_LENGTH} caracteres.")
     if count_words(name) < NAME_MIN_WORDS:
@@ -62,7 +61,6 @@ def validate_attributes(attributes: PlayerAttributes) -> None:
 def validate_potential(
     potential: int, attributes: PlayerAttributes, *, registration_age: int
 ) -> None:
-    """Só vale no cadastro: um PUT que leve a idade a 33 anos ou mais não muda o potencial."""
     highest = attributes.highest()
     if potential < highest:
         raise PotentialBelowHighestAttributeError(highest)
@@ -78,7 +76,6 @@ def ensure_profile_change_allowed(
     new_age: int,
     has_club: bool,
 ) -> None:
-    """Regras do PUT que dependem do estado atual do jogador (RN08)."""
     if has_club and new_position != current_position:
         raise PositionLockedError
     if new_age < current_age:
@@ -91,11 +88,9 @@ def ensure_condition_change_allowed(current: Condition, new: Condition) -> None:
 
 
 def leaves_lineup(condition: Condition) -> bool:
-    """O titular que passa a DOENTE sai da escalação na mesma operação (RN19)."""
     return condition == Condition.DOENTE
 
 
 def ensure_deletable(*, has_club: bool) -> None:
-    """Só jogador livre pode ser excluído (RN09)."""
     if has_club:
         raise PlayerInClubDeletionError

@@ -24,8 +24,6 @@ class ClubDetails:
 
 
 class ClubService:
-    """Casos de uso de clubes."""
-
     def __init__(self, clubs: ClubRepository, contracts: ContractRepository, clock: Clock) -> None:
         self._clubs = clubs
         self._contracts = contracts
@@ -39,14 +37,12 @@ class ClubService:
         )
         club = Club.from_registration(registration)
         self._clubs.add(club)
-        # Recarrega com o elenco (vazio), para a resposta não consultar o banco fora do serviço.
         return ensure_club_found(self._clubs.get_with_squad(club.id))
 
     def list_clubs(self, criteria: ClubListCriteria) -> list[Club]:
         return sort_clubs(self._clubs.list_with_squads(), criteria.sort)
 
     def get_details(self, club_id: int) -> ClubDetails:
-        """Elenco na ordem da RN11, com os dias restantes e a multa calculados agora."""
         club = ensure_club_found(self._clubs.get_with_squad(club_id))
         contracts = self._contracts.active_by_player(club.id)
         moment = self._clock()

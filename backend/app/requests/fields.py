@@ -1,9 +1,3 @@
-"""Tipos dos campos do corpo das requisições, com a validação estrita de V2 e V4.
-
-Campos de lista usam os próprios enums do domínio: o Pydantic já os compara com
-maiúsculas e minúsculas exatas, como pede a V5.
-"""
-
 from datetime import datetime
 from typing import Annotated
 
@@ -16,7 +10,6 @@ from app.domain.text import normalize_text
 
 
 def parse_strict_integer(value: object) -> int:
-    """Aceita só números JSON inteiros: 15 e 15.0 valem; "15", true e 15.5 não (V2)."""
     is_number = isinstance(value, int | float) and not isinstance(value, bool)
     if not is_number or (isinstance(value, float) and not value.is_integer()):
         raise InvalidInputError("deve ser um número inteiro.")
@@ -30,7 +23,6 @@ def parse_string(value: object) -> str:
 
 
 def parse_normalized_text(value: object) -> str:
-    """Texto pela regra V4; o que fica vazio conta como ausente."""
     text = normalize_text(parse_string(value))
     if not text:
         raise InvalidInputError("é obrigatório.")

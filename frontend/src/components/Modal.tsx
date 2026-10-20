@@ -19,7 +19,6 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg'
   variant?: 'dialog' | 'drawer'
   form?: ModalForm
-  /** Keeps the dialog open while a request is pending, so its result is not lost. */
   isBusy?: boolean
   children: ReactNode
 }

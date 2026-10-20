@@ -41,7 +41,6 @@ class Club(models.Model):
 
     @classmethod
     def from_registration(cls, registration: ClubRegistration) -> Self:
-        """Clube recém-criado: caixa inicial e sem jogadores (RN10)."""
         return cls(
             name=registration.name,
             name_key=name_key(registration.name),
@@ -51,7 +50,6 @@ class Club(models.Model):
 
     @property
     def squad_value(self) -> Decimal:
-        """Calculado a cada consulta, nunca gravado (RN11)."""
         return calculate_squad_value(player.market_value for player in self.players.all())
 
     @property

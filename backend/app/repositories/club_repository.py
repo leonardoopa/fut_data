@@ -26,7 +26,6 @@ class ClubRepository:
         return Club.objects.filter(acronym=acronym).exists()
 
     def add(self, club: Club) -> None:
-        """As colunas UNIQUE do nome e da sigla barram também duas criações simultâneas (RN10)."""
         try:
             club.save()
         except IntegrityError as error:
@@ -42,10 +41,9 @@ class ClubRepository:
         return list(Club.objects.prefetch_related("players"))
 
     def lock(self, club_id: int) -> Club | None:
-        """Trava a linha do clube até o fim da transação (SELECT ... FOR UPDATE)."""
         return Club.objects.select_for_update().filter(pk=club_id).first()
 
     def lock_many(self, club_ids: Iterable[int]) -> dict[int, Club]:
-        """Trava os clubes sempre em ordem crescente de id, para não haver deadlock."""
+        """Ascending id order avoids deadlocks."""
         clubs = Club.objects.select_for_update().filter(pk__in=club_ids).order_by("id")
         return {club.id: club for club in clubs}

@@ -49,12 +49,7 @@ class TransactionHistory:
 
 
 class MarketService:
-    """Compra, venda e histórico de transações.
-
-    A compra e a venda travam o jogador e depois o clube, sempre nessa ordem, até o fim da
-    transação: as regras são conferidas e gravadas sobre o mesmo estado, e nada é gravado
-    quando uma delas recusa o pedido.
-    """
+    """Buy and sell lock the player, then the club, always in that order."""
 
     def __init__(
         self,
@@ -75,7 +70,6 @@ class MarketService:
 
     @transaction.atomic
     def buy(self, player_id: int, order: PurchaseOrder) -> Purchase:
-        """O preço é o valor de mercado do momento, nunca o valor base (RN12)."""
         player = ensure_player_found(self._players.lock_active(player_id))
         club = ensure_club_found(self._clubs.lock(order.club_id))
         moment = self._clock()
@@ -97,7 +91,6 @@ class MarketService:
 
     @transaction.atomic
     def sell(self, player_id: int) -> Sale:
-        """A venda é feita pelo clube atual; o titular sai da escalação (RN15, RN16 e RN19)."""
         player = ensure_player_found(self._players.lock_active(player_id))
         ensure_sellable(has_club=player.has_club)
         club = ensure_club_found(self._clubs.lock(player.club_id))
@@ -125,7 +118,6 @@ class MarketService:
     def export_transactions(
         self, club_id: int, criteria: TransactionListCriteria
     ) -> list[MarketTransaction]:
-        """Mesmos filtros, conferências e ordem do histórico (RN18)."""
         return self._filter_transactions(club_id, criteria)
 
     def _filter_transactions(
@@ -139,7 +131,6 @@ class MarketService:
     def _record(
         self, club: Club, player: Player, amounts: TransactionAmounts, moment: datetime
     ) -> MarketTransaction:
-        """O caixa só muda junto com a transação: 300,00 + soma de cash_change = caixa (RN17)."""
         club.cash += amounts.cash_change
         self._clubs.save(club)
         market_transaction = MarketTransaction.record(club, player, amounts, moment)

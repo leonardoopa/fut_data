@@ -19,12 +19,6 @@ from app.services.lookups import ensure_club_exists, ensure_player_found
 
 
 class PlayerService:
-    """Casos de uso de jogadores.
-
-    As alterações travam a linha do jogador até o fim da transação, para que a conferência
-    das regras e a gravação vejam o mesmo estado.
-    """
-
     def __init__(
         self,
         players: PlayerRepository,
@@ -61,15 +55,13 @@ class PlayerService:
 
     @transaction.atomic
     def change_condition(self, player_id: int, condition: Condition) -> Player:
-        """Enviar a condição atual é aceito, sem mudança; o titular DOENTE sai da escalação."""
         player = ensure_player_found(self._players.lock_active(player_id))
         current = Condition(player.condition)
         if condition == current:
             return player
         ensure_condition_change_allowed(current, condition)
         if leaves_lineup(condition) and player.club_id is not None:
-            # Trava o clube depois do jogador, na mesma ordem da compra e da venda: uma partida
-            # em andamento, que já travou o clube, termina antes de o titular sair da escalação.
+            # Same order as buy and sell (player, then club); waits for a match holding the club.
             self._clubs.lock(player.club_id)
         player.condition = condition
         self._players.save(player)
@@ -79,14 +71,12 @@ class PlayerService:
 
     @transaction.atomic
     def delete(self, player_id: int) -> None:
-        """Exclusão lógica: grava o momento em excluido_em e não apaga nada (RN09)."""
         player = ensure_player_found(self._players.lock_active(player_id))
         ensure_deletable(has_club=player.has_club)
         player.deleted_at = self._clock()
         self._players.save(player)
 
     def list_players(self, criteria: PlayerListCriteria) -> Page[Player]:
-        """A paginação vem depois da busca, dos filtros e da ordenação (RN07)."""
         if criteria.club_id is not None:
             ensure_club_exists(self._clubs, criteria.club_id)
         candidates = self._players.list_active(criteria)

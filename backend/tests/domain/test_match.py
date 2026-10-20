@@ -100,7 +100,6 @@ def test_documented_match_plays_the_six_duels_of_the_statement() -> None:
 
 
 def test_two_starters_in_the_same_position_follow_the_name_then_the_id() -> None:
-    """No 1-2-1, o MEI de nome menor é o 2º de linha e o outro, o 3º."""
     home = Team(
         club_id=HOME_ID,
         starters=(

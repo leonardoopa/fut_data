@@ -42,7 +42,7 @@ export function useLeagueData(): League {
 export function useLeague(): League {
   const league = useContext(LeagueContext)
   if (!league) {
-    throw new Error('useLeague precisa estar dentro de LeagueProvider.')
+    throw new Error('useLeague must be used inside LeagueProvider.')
   }
   return league
 }

@@ -29,7 +29,6 @@ ATTRIBUTE_FIELDS = tuple(field.name for field in fields(PlayerAttributes))
 
 class PlayerQuerySet(models.QuerySet["Player"]):
     def active(self) -> Self:
-        """Sem os excluídos, que contam como inexistentes em toda a API (RN09)."""
         return self.filter(deleted_at__isnull=True)
 
 
@@ -80,10 +79,6 @@ class Player(models.Model):
 
     @classmethod
     def from_registration(cls, registration: PlayerRegistration) -> Self:
-        """Jogador recém-cadastrado: APTO, livre e com o valor base do cadastro (RN06).
-
-        O valor base é calculado uma única vez, com a posição, os atributos e a idade do cadastro.
-        """
         profile = registration.profile
         overall = calculate_overall(profile.position, registration.attributes)
         return cls(
@@ -102,12 +97,10 @@ class Player(models.Model):
 
     @property
     def overall(self) -> int:
-        """Calculado a cada consulta, nunca gravado: a posição pode mudar no PUT (RN06)."""
         return calculate_overall(Position(self.position), self.attributes)
 
     @property
     def market_value(self) -> Decimal:
-        """Calculado a cada consulta, com a condição, a agilidade e a idade atuais (RN05)."""
         return calculate_market_value(
             self.base_value, Condition(self.condition), self.agility, self.age
         )

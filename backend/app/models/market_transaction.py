@@ -45,7 +45,6 @@ class MarketTransaction(models.Model):
     def record(
         cls, club: Club, player: Player, amounts: TransactionAmounts, moment: datetime
     ) -> Self:
-        """Guarda os valores e o nome do jogador no momento; nunca é recalculada (RN17)."""
         return cls(
             club=club,
             player=player,

@@ -1,12 +1,7 @@
-"""Catálogo dos erros esperados da API.
+"""Catalog of the API errors; the base class sets the status: 400, 404 or 409 (V9).
 
-Cada erro herda de uma das três categorias, e a categoria define o código HTTP no
-tratador central (`app/core/error_handlers.py`): `InvalidInputError` vira 400,
-`NotFoundError` vira 404 e `BusinessRuleError` vira 409 (V9).
-
-Ordem das conferências em cada operação: primeiro o formato do pedido (400, feito
-pelos modelos de requisição), depois a existência dos recursos (404), depois as regras
-do pedido que dependem do momento (400) e por fim as regras de negócio do estado atual (409).
+Check order: request format (400), resource existence (404), rules that depend on
+the current time (400), then business rules over the current state (409).
 """
 
 from decimal import Decimal
@@ -15,8 +10,6 @@ from app.domain.money import format_money
 
 
 class DomainError(Exception):
-    """Erro esperado, com mensagem pronta para o cliente."""
-
     message = "Não foi possível concluir a operação."
 
     def __init__(self, message: str | None = None) -> None:
@@ -24,23 +17,17 @@ class DomainError(Exception):
 
 
 class InvalidInputError(DomainError, ValueError):
-    """Dado, formato ou parâmetro inválido (400).
-
-    Também é um ValueError para que o Pydantic o converta em erro de validação
-    do campo quando é lançado dentro de um validador.
-    """
+    """Also a ValueError, so Pydantic reports it as a field error (400)."""
 
     message = "Dado inválido."
 
 
 class NotFoundError(DomainError):
-    """Recurso inexistente (404)."""
-
     message = "Recurso não encontrado."
 
 
 class BusinessRuleError(DomainError):
-    """Regra de negócio violada pelo estado atual (409)."""
+    """Business rule violated by the current state (409)."""
 
 
 class PlayerNotFoundError(NotFoundError):

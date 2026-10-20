@@ -1,5 +1,3 @@
-"""Corpo da compra e query params do histórico de transações."""
-
 from typing import Annotated
 
 from pydantic import BaseModel
@@ -13,7 +11,7 @@ QueryTransactionTypes = Annotated[tuple[TransactionType, ...] | None, choice_lis
 
 
 class PurchaseRequest(BaseModel):
-    """Corpo de POST /players/{id}/buy; um clube inexistente é conferido pelo caso de uso (404)."""
+    """Body of POST /players/{id}/buy; an unknown club is a 404 from the use case."""
 
     club_id: PositiveId
     loyalty_until: BrasiliaDateTime
@@ -23,7 +21,7 @@ class PurchaseRequest(BaseModel):
 
 
 class TransactionListQuery(BaseModel):
-    """Query params de GET /clubs/{id}/transactions; sem type, vêm os dois tipos (RN17)."""
+    """Query params of GET /clubs/{id}/transactions; no type means both (RN17)."""
 
     type: QueryTransactionTypes = None
     player_id: QueryPositiveInteger = None

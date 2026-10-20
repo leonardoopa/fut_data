@@ -20,7 +20,7 @@ class MatchSideView(BaseModel):
 
 
 class MatchView(BaseModel):
-    """Partida sem os duelos, como em GET /matches (RN21)."""
+    """Match without duels, as in GET /matches (RN21)."""
 
     id: int
     played_at: BrasiliaTimestamp
@@ -49,7 +49,7 @@ class DuelPlayerView(BaseModel):
 
 
 class DuelView(BaseModel):
-    """Duelo com os dados gravados no momento da partida (RN20)."""
+    """Duel with the data stored at match time (RN20)."""
 
     order: int
     attacking_club_id: int
@@ -83,7 +83,7 @@ class DuelView(BaseModel):
 
 
 class MatchDetailsView(MatchView):
-    """Resposta de POST /matches e GET /matches/{id}: a partida e os 6 duelos (RN20)."""
+    """Response of POST /matches and GET /matches/{id}: the match and its 6 duels (RN20)."""
 
     duels: list[DuelView]
 

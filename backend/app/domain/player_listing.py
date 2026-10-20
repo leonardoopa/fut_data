@@ -1,5 +1,3 @@
-"""Busca, filtros, ordenação e valores padrão da listagem de jogadores (RN07)."""
-
 from collections.abc import Callable, Iterable, Sequence
 from decimal import Decimal
 from enum import StrEnum
@@ -26,8 +24,6 @@ POSITION_RANK = {position: rank for rank, position in enumerate(POSITION_ORDER)}
 
 
 class ListedPlayer(Protocol):
-    """O que a listagem lê de cada jogador."""
-
     @property
     def id(self) -> int: ...
 
@@ -58,7 +54,6 @@ class PlayerSort(StrEnum):
 
     @property
     def field(self) -> str:
-        """Campo ordenado: os dois sentidos de um campo não se combinam (value_asc,value_desc)."""
         field = self.value
         for suffix in SORT_DIRECTION_SUFFIXES:
             field = field.removesuffix(suffix)
@@ -92,7 +87,6 @@ def validate_value_range(min_value: Decimal, max_value: Decimal) -> None:
 
 
 def validate_club_filter(free: bool | None, club_id: int | None) -> None:
-    """Jogador livre não tem clube: free=true com club_id é contraditório."""
     if free and club_id is not None:
         raise FreeWithClubFilterError
 
@@ -100,11 +94,7 @@ def validate_club_filter(free: bool | None, club_id: int | None) -> None:
 def filter_by_search_and_value[P: ListedPlayer](
     players: Iterable[P], *, search: str | None, min_value: Decimal, max_value: Decimal
 ) -> list[P]:
-    """Filtros que não viram consulta ao banco.
-
-    O valor de mercado é calculado a cada consulta e não é coluna, e a busca ignora
-    acentos pela decomposição NFD do enunciado, que as collations do banco não reproduzem.
-    """
+    """Market value is not a column and NFD accent folding has no database collation."""
     return [
         player
         for player in players
@@ -114,7 +104,6 @@ def filter_by_search_and_value[P: ListedPlayer](
 
 
 def sort_players[P: ListedPlayer](players: Iterable[P], criteria: Sequence[PlayerSort]) -> list[P]:
-    """Ordena pelos critérios pedidos; o empate é desfeito pelo nome e depois pelo id."""
     keys = [SORT_KEYS[criterion] for criterion in criteria]
     return sorted(
         players,

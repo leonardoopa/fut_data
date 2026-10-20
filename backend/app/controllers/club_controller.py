@@ -12,7 +12,7 @@ from app.requests.path import ResourceId
 from app.services.club_service import ClubService
 from app.views.club_view import ClubDetailsView, ClubView
 
-router = DatabaseRouter(prefix="/clubs", tags=["Clubes"])
+router = DatabaseRouter(prefix="/clubs", tags=["Clubs"])
 
 
 def get_club_service(clock: Annotated[Clock, Depends(get_clock)]) -> ClubService:
@@ -22,19 +22,19 @@ def get_club_service(clock: Annotated[Clock, Depends(get_clock)]) -> ClubService
 ClubServiceDependency = Annotated[ClubService, Depends(get_club_service)]
 
 
-@router.get("", summary="Lista os clubes, pelo nome ou pelo patrimônio (RN11)")
+@router.get("", summary="List clubs by name or net worth (RN11)")
 def list_clubs(
     query: Annotated[ClubListQuery, Query()], service: ClubServiceDependency
 ) -> list[ClubView]:
     return [ClubView.from_model(club) for club in service.list_clubs(query.to_criteria())]
 
 
-@router.get("/{club_id}", summary="Consulta um clube com o elenco e os contratos (RN11)")
+@router.get("/{club_id}", summary="Get a club with its squad and contracts (RN11)")
 def get_club(club_id: ResourceId, service: ClubServiceDependency) -> ClubDetailsView:
     return ClubDetailsView.from_details(service.get_details(club_id))
 
 
-@router.post("", status_code=HTTPStatus.CREATED, summary="Cria um clube (RN10)")
+@router.post("", status_code=HTTPStatus.CREATED, summary="Create a club (RN10)")
 def create_club(
     body: ClubRegistrationRequest,
     request: Request,

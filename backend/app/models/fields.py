@@ -10,14 +10,12 @@ BINARY_COLLATIONS = {"mysql": "utf8mb4_0900_bin", "sqlite": "BINARY"}
 
 
 class FixedCharField(models.CharField):
-    """Texto de tamanho fixo, gravado como CHAR(n)."""
-
     def db_type(self, connection: BaseDatabaseWrapper) -> str:
         return f"char({self.max_length})"
 
 
 class BinaryCollationCharField(models.CharField):
-    """Texto comparado byte a byte pelo banco: diferencia acentos, maiúsculas e minúsculas."""
+    """Compared byte by byte by the database: accent- and case-sensitive."""
 
     def db_parameters(self, connection: BaseDatabaseWrapper) -> dict[str, Any]:
         parameters = super().db_parameters(connection)

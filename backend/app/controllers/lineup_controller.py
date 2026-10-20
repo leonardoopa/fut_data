@@ -11,7 +11,7 @@ from app.requests.path import ResourceId
 from app.services.lineup_service import LineupService
 from app.views.lineup_view import LineupView
 
-router = DatabaseRouter(prefix="/clubs/{club_id}/lineup", tags=["Escalação"])
+router = DatabaseRouter(prefix="/clubs/{club_id}/lineup", tags=["Lineup"])
 
 
 def get_lineup_service() -> LineupService:
@@ -23,13 +23,13 @@ def get_lineup_service() -> LineupService:
 LineupServiceDependency = Annotated[LineupService, Depends(get_lineup_service)]
 
 
-@router.put("", summary="Substitui a escalação do clube (RN19)")
+@router.put("", summary="Replace the club lineup (RN19)")
 def replace_lineup(
     club_id: ResourceId, body: LineupRequest, service: LineupServiceDependency
 ) -> LineupView:
     return LineupView.from_lineup(service.replace(club_id, body.to_selection()))
 
 
-@router.get("", summary="Consulta a escalação do clube (RN19)")
+@router.get("", summary="Get the club lineup (RN19)")
 def get_lineup(club_id: ResourceId, service: LineupServiceDependency) -> LineupView:
     return LineupView.from_lineup(service.get(club_id))

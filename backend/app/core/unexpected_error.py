@@ -5,12 +5,6 @@ from app.core.error_handlers import handle_unexpected_error
 
 
 class UnexpectedErrorMiddleware:
-    """Responde a falha inesperada por dentro do CORS.
-
-    O tratador de `Exception` do Starlette roda fora de todos os middlewares, e o 500 sairia sem
-    os cabeçalhos do CORS: o navegador mostraria erro de CORS em vez do `message`.
-    """
-
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
