@@ -60,7 +60,6 @@ def describe_field_reason(detail: ValidationDetail) -> str:
 
 
 def describe_validation_error(error: RequestValidationError) -> str:
-    """Traduz o primeiro erro de validação do Pydantic numa mensagem para o cliente."""
     detail = error.errors()[0]
     if detail["type"] == "json_invalid":
         return INVALID_JSON_MESSAGE
@@ -91,7 +90,7 @@ async def handle_http_error(_: Request, error: StarletteHTTPException) -> JSONRe
 
 
 async def handle_unexpected_error(_: Request, error: Exception) -> JSONResponse:
-    logger.exception("Falha inesperada", exc_info=error)
+    logger.exception("Unexpected failure", exc_info=error)
     return error_response(HTTPStatus.INTERNAL_SERVER_ERROR, UNEXPECTED_ERROR_MESSAGE)
 
 

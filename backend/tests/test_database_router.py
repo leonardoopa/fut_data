@@ -39,5 +39,5 @@ def test_async_endpoint_is_rejected() -> None:
     async def probe() -> None:
         return None
 
-    with pytest.raises(TypeError, match="deve ser síncrono"):
+    with pytest.raises(TypeError, match="must be synchronous"):
         router.add_api_route("/probe", probe)

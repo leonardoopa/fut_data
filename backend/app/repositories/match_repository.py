@@ -18,7 +18,6 @@ class MatchRepository:
         return list(MatchDuel.objects.filter(match_id=match_id).order_by("order"))
 
     def list_matches(self, criteria: MatchListCriteria) -> list[Match]:
-        """Da mais recente para a mais antiga; no mesmo instante, maior id primeiro (RN21)."""
         matches = Match.objects.select_related("home_club", "away_club")
         if criteria.club_id is not None:
             matches = matches.filter(

@@ -1,5 +1,3 @@
-"""Escalação: formações, titulares aceitos e escalação completa (RN19)."""
-
 from collections import Counter
 from collections.abc import Sequence
 from enum import StrEnum
@@ -35,7 +33,6 @@ SECTOR_OF_POSITION: dict[Position, Sector] = {
 
 
 def formation_sectors(defense: int, midfield: int, attack: int) -> Counter[Sector]:
-    """Titulares por setor: sempre 1 goleiro e os 4 de linha da formação."""
     return Counter(
         {Sector.GOAL: 1, Sector.DEFENSE: defense, Sector.MIDFIELD: midfield, Sector.ATTACK: attack}
     )
@@ -50,8 +47,6 @@ FORMATION_SECTORS: dict[Formation, Counter[Sector]] = {
 
 
 class Starter(Protocol):
-    """O que a escalação lê de cada titular."""
-
     @property
     def club_id(self) -> int | None: ...
 
@@ -68,7 +63,6 @@ def ensure_distinct_starters(player_ids: Sequence[int]) -> None:
 
 
 def ensure_lineup_allowed(club_id: int, formation: Formation, starters: Sequence[Starter]) -> None:
-    """Titulares do elenco, nenhum DOENTE, e as posições fecham a formação."""
     if any(starter.club_id != club_id for starter in starters):
         raise StarterNotInSquadError
     if any(leaves_lineup(Condition(starter.condition)) for starter in starters):
@@ -79,7 +73,6 @@ def ensure_lineup_allowed(club_id: int, formation: Formation, starters: Sequence
 
 
 def is_lineup_complete(starter_count: int) -> bool:
-    """O titular vendido ou DOENTE sai da escalação, que fica incompleta até escalar de novo."""
     return starter_count == LINEUP_SIZE
 
 

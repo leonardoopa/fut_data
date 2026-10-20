@@ -18,7 +18,7 @@ from app.requests.players import (
 from app.services.player_service import PlayerService
 from app.views.player_view import PlayerPageView, PlayerView
 
-router = DatabaseRouter(prefix="/players", tags=["Jogadores"])
+router = DatabaseRouter(prefix="/players", tags=["Players"])
 
 
 def get_player_service(clock: Annotated[Clock, Depends(get_clock)]) -> PlayerService:
@@ -33,19 +33,19 @@ def get_player_service(clock: Annotated[Clock, Depends(get_clock)]) -> PlayerSer
 PlayerServiceDependency = Annotated[PlayerService, Depends(get_player_service)]
 
 
-@router.get("", summary="Lista os jogadores com busca, filtros, ordenação e paginação (RN07)")
+@router.get("", summary="List players with search, filters, sorting and pagination (RN07)")
 def list_players(
     query: Annotated[PlayerListQuery, Query()], service: PlayerServiceDependency
 ) -> PlayerPageView:
     return PlayerPageView.from_page(service.list_players(query.to_criteria()))
 
 
-@router.get("/{player_id}", summary="Consulta um jogador")
+@router.get("/{player_id}", summary="Get a player")
 def get_player(player_id: ResourceId, service: PlayerServiceDependency) -> PlayerView:
     return PlayerView.from_model(service.get(player_id))
 
 
-@router.post("", status_code=HTTPStatus.CREATED, summary="Cadastra um jogador")
+@router.post("", status_code=HTTPStatus.CREATED, summary="Register a player")
 def create_player(
     body: PlayerRegistrationRequest,
     request: Request,
@@ -59,14 +59,14 @@ def create_player(
     return PlayerView.from_model(player)
 
 
-@router.put("/{player_id}", summary="Edita nome, posição, agilidade e idade (RN08)")
+@router.put("/{player_id}", summary="Edit name, position, agility and age (RN08)")
 def update_player(
     player_id: ResourceId, body: PlayerProfileRequest, service: PlayerServiceDependency
 ) -> PlayerView:
     return PlayerView.from_model(service.update(player_id, body.to_profile()))
 
 
-@router.patch("/{player_id}/condition", summary="Altera a condição física")
+@router.patch("/{player_id}/condition", summary="Change the physical condition")
 def change_player_condition(
     player_id: ResourceId, body: PlayerConditionRequest, service: PlayerServiceDependency
 ) -> PlayerView:
@@ -77,7 +77,7 @@ def change_player_condition(
     "/{player_id}",
     status_code=HTTPStatus.NO_CONTENT,
     response_class=Response,
-    summary="Exclui logicamente um jogador livre (RN09)",
+    summary="Soft-delete a free player (RN09)",
 )
 def delete_player(player_id: ResourceId, service: PlayerServiceDependency) -> None:
     service.delete(player_id)

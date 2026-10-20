@@ -7,8 +7,6 @@ logger = logging.getLogger("app.access")
 
 
 class AccessLogMiddleware:
-    """Registra método, caminho e status de cada requisição HTTP."""
-
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 

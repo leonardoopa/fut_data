@@ -8,14 +8,9 @@ from fastapi import APIRouter
 
 
 def database_scoped[**P, R](endpoint: Callable[P, R]) -> Callable[P, R]:
-    """Aplica ao endpoint o ciclo de conexão que o Django faz em cada requisição.
-
-    O Django ORM guarda uma conexão por thread, e o FastAPI executa endpoints
-    síncronos num pool de threads: por isso a reciclagem precisa acontecer
-    dentro do próprio endpoint, na mesma thread que usa o ORM.
-    """
+    """Recycle the ORM connection in the endpoint's own thread; Django keeps one per thread."""
     if inspect.iscoroutinefunction(endpoint):
-        message = f"O endpoint {endpoint.__name__} usa o Django ORM e deve ser síncrono (def)."
+        message = f"Endpoint {endpoint.__name__} uses the Django ORM and must be synchronous (def)."
         raise TypeError(message)
 
     @wraps(endpoint)
@@ -30,8 +25,6 @@ def database_scoped[**P, R](endpoint: Callable[P, R]) -> Callable[P, R]:
 
 
 class DatabaseRouter(APIRouter):
-    """APIRouter cujos endpoints acessam o banco pelo Django ORM."""
-
     def add_api_route(self, path: str, endpoint: Callable[..., Any], **kwargs: Any) -> None:
         super().add_api_route(path, database_scoped(endpoint), **kwargs)
 

@@ -32,13 +32,11 @@ def club() -> Club:
 
 @pytest.fixture
 def squad(club: Club) -> list[Player]:
-    """GOL, ZAG, LAT, MEI e ATA, nessa ordem do elenco."""
     return sign_squad(club, TWO_ONE_ONE)
 
 
 @pytest.fixture
 def bought_squad(client: TestClient, clock: FixedClock) -> tuple[int, list[Player]]:
-    """Clube criado pela API, com os 5 jogadores do 2-1-1 comprados no mercado."""
     club_id = register_club(client)["id"]
     return club_id, buy_squad(client, club_id, TWO_ONE_ONE)
 

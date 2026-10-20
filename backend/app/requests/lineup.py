@@ -1,5 +1,3 @@
-"""Corpo de PUT /clubs/{id}/lineup."""
-
 from typing import Annotated, Self
 
 from pydantic import BaseModel, Field, model_validator
@@ -15,7 +13,7 @@ StarterIds = Annotated[
 
 
 class LineupRequest(BaseModel):
-    """Os titulares existem, são do elenco e fecham a formação: conferido pelo caso de uso."""
+    """Starters belong to the squad and fit the formation: checked by the use case."""
 
     formation: Formation
     player_ids: StarterIds

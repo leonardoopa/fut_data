@@ -9,5 +9,4 @@ system_clock: Clock = timezone.now
 
 
 def get_clock() -> Clock:
-    """Relógio dos casos de uso; os testes o trocam por um relógio fixo."""
     return system_clock

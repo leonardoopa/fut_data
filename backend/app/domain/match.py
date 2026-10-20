@@ -1,5 +1,3 @@
-"""Motor da partida (RN20): titulares, efeito da condição, duelos e placar."""
-
 from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
@@ -16,7 +14,7 @@ from app.domain.rounding import round_to_integer
 GOALKEEPER = 0
 FIRST_ORDER = 1
 DUEL_SLOTS: tuple[tuple[int, int], ...] = ((4, GOALKEEPER), (3, 1), (2, 2))
-"""(atacante, defensor) de cada ataque, pela ordem do elenco: 0 é o goleiro, 1 a 4 os de linha."""
+"""(attacker, defender) squad indexes of each attack: 0 is the goalkeeper, 1 to 4 outfield."""
 
 ATTACKS_PER_TEAM = len(DUEL_SLOTS)
 
@@ -35,8 +33,6 @@ DEFENSE_ATTRIBUTE = DuelAttribute.DEFENDING
 
 
 class Outcome(StrEnum):
-    """Resultado do ponto de vista de um dos clubes."""
-
     WIN = "WIN"
     DRAW = "DRAW"
     LOSS = "LOSS"
@@ -50,8 +46,6 @@ HOME_RESULTS: dict[Outcome, MatchResult] = {
 
 
 class MatchPlayer(ListedPlayer, Protocol):
-    """O que a partida lê de cada titular, além do que a ordem do elenco usa."""
-
     @property
     def condition(self) -> str: ...
 
@@ -67,8 +61,6 @@ class Team:
 
 @dataclass(frozen=True)
 class DuelPlayer:
-    """Titular no duelo, com os dados do momento e o valor usado."""
-
     player_id: int
     player_name: str
     position: Position
@@ -86,7 +78,6 @@ class Duel:
 
     @property
     def goal(self) -> bool:
-        """Empate de valores não é gol."""
         return self.attacker.value > self.defender.value
 
 
@@ -119,7 +110,6 @@ def decide_result(home_goals: int, away_goals: int) -> MatchResult:
 
 
 def effective_value(player: MatchPlayer, attribute: DuelAttribute) -> int:
-    """MAL_CONDICIONADO joga com o atributo vezes 0,85, arredondado com o meio para cima."""
     registered = getattr(player.attributes, attribute.value)
     return round_to_integer(registered * CONDITION_FACTORS[Condition(player.condition)])
 
@@ -136,7 +126,6 @@ def duel_player(player: MatchPlayer, attribute: DuelAttribute) -> DuelPlayer:
 
 
 def attacks(attacking: Team, defending: Team, first_order: int) -> tuple[Duel, ...]:
-    """Atacam os 3 de linha mais avançados; defendem o goleiro e os 2 mais recuados."""
     attackers = sort_squad(attacking.starters)
     defenders = sort_squad(defending.starters)
     return tuple(
@@ -158,7 +147,6 @@ def count_goals(duels: Sequence[Duel]) -> int:
 
 
 def play_match(home: Team, away: Team) -> MatchOutcome:
-    """Duelos 1 a 3 são os ataques do mandante; 4 a 6, os do visitante."""
     home_attacks = attacks(home, away, FIRST_ORDER)
     away_attacks = attacks(away, home, FIRST_ORDER + ATTACKS_PER_TEAM)
     return MatchOutcome(

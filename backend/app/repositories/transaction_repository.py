@@ -15,7 +15,6 @@ class TransactionRepository:
     def list_of_club(
         self, club_id: int, criteria: TransactionListCriteria
     ) -> list[MarketTransaction]:
-        """Da mais recente para a mais antiga; no empate de data e hora, id decrescente (RN17)."""
         transactions = MarketTransaction.objects.filter(club_id=club_id, type__in=criteria.type)
         if criteria.player_id is not None:
             transactions = transactions.filter(player_id=criteria.player_id)

@@ -1,5 +1,3 @@
-"""Ponto de entrada ASGI: inicializa o Django ORM antes de carregar a API."""
-
 import os
 
 import django

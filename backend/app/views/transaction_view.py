@@ -10,7 +10,7 @@ from app.views.fields import BrasiliaTimestamp, Money
 
 
 class TransactionView(BaseModel):
-    """Transação com os valores gravados no momento da compra ou da venda (RN17)."""
+    """Transaction with the values stored at purchase or sale time (RN17)."""
 
     id: int
     club_id: int
@@ -40,7 +40,7 @@ class PurchaseContractView(BaseModel):
 
 
 class PurchaseView(TransactionView):
-    """Resposta da compra: a transação, o contrato criado e o novo caixa (RN12)."""
+    """Purchase response: the transaction, the new contract and the new cash (RN12)."""
 
     contract: PurchaseContractView
     club_cash: Money
@@ -55,7 +55,7 @@ class PurchaseView(TransactionView):
 
 
 class SaleView(TransactionView):
-    """Resposta da venda: a transação, o acerto da multa e o novo caixa (RN15 e RN16)."""
+    """Sale response: the transaction, the penalty settlement and the new cash (RN15, RN16)."""
 
     purchase_value: Money
     remaining_days: int
@@ -89,7 +89,7 @@ class TransactionSummaryView(BaseModel):
 
 
 class TransactionHistoryView(BaseModel):
-    """Resposta de GET /clubs/{id}/transactions: as transações filtradas e os totais (RN17)."""
+    """Response of GET /clubs/{id}/transactions: filtered transactions and totals (RN17)."""
 
     data: list[TransactionView]
     summary: TransactionSummaryView

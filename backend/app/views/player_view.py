@@ -10,7 +10,7 @@ from app.views.page_view import PageMeta
 
 
 class PlayerView(BaseModel):
-    """Jogador nas respostas; o overall e o valor de mercado vêm calculados na hora (RN06)."""
+    """Player in responses; overall and market value are computed on every read (RN06)."""
 
     id: int
     name: str
@@ -36,7 +36,7 @@ class PlayerView(BaseModel):
 
 
 class PlayerPageView(BaseModel):
-    """Resposta de GET /players: os jogadores da página e o meta da paginação (RN07)."""
+    """Response of GET /players: the page of players and the pagination meta (RN07)."""
 
     data: list[PlayerView]
     meta: PageMeta

@@ -10,7 +10,7 @@ from app.views.player_view import PlayerView
 
 
 class ClubView(BaseModel):
-    """Clube nas respostas; o valor do elenco e o patrimônio vêm calculados na hora (RN11)."""
+    """Club in responses; squad value and net worth are computed on every read (RN11)."""
 
     id: int
     name: str
@@ -52,7 +52,7 @@ class SquadPlayerView(PlayerView):
 
 
 class ClubDetailsView(ClubView):
-    """Resposta de GET /clubs/{id}: o clube e o elenco na ordem da RN11."""
+    """Response of GET /clubs/{id}: the club and its squad in RN11 order."""
 
     players: list[SquadPlayerView]
 

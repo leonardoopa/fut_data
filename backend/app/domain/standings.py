@@ -1,5 +1,3 @@
-"""Classificação da liga, calculada a cada consulta e nunca gravada (RN21)."""
-
 from collections import Counter
 from collections.abc import Iterable, Sequence
 from dataclasses import asdict, dataclass
@@ -67,7 +65,6 @@ class Standing(ClubRecord):
 
 
 def scores_of(club_id: int, matches: Iterable[PlayedMatch]) -> list[tuple[int, int]]:
-    """Gols marcados e sofridos pelo clube em cada partida que jogou, como mandante ou visitante."""
     scores = []
     for match in matches:
         if match.home_club_id == club_id:
@@ -92,7 +89,6 @@ def build_record(club: LeagueClub, matches: Sequence[PlayedMatch]) -> ClubRecord
 
 
 def standing_key(record: ClubRecord) -> tuple[int, int, int, str, int]:
-    """Mais pontos, maior saldo, mais gols marcados, depois o nome e o id."""
     return (
         -record.points,
         -record.goal_difference,
@@ -105,7 +101,6 @@ def standing_key(record: ClubRecord) -> tuple[int, int, int, str, int]:
 def compute_standings(
     clubs: Iterable[LeagueClub], matches: Sequence[PlayedMatch]
 ) -> list[Standing]:
-    """Todos os clubes, inclusive os que não jogaram; posições de 1 ao total, sem repetir."""
     records = sorted((build_record(club, matches) for club in clubs), key=standing_key)
     return [
         Standing(**asdict(record), position=position)

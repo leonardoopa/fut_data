@@ -1,5 +1,3 @@
-"""Filtros e totais do histórico de transações de um clube (RN17)."""
-
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
@@ -10,8 +8,6 @@ from app.domain.rounding import ZERO_MONEY, round_money
 
 
 class RecordedTransaction(Protocol):
-    """O que os totais leem de cada transação gravada."""
-
     @property
     def type(self) -> str: ...
 
@@ -45,7 +41,6 @@ def total(amounts: Iterable[Decimal]) -> Decimal:
 
 
 def summarize_transactions(transactions: Sequence[RecordedTransaction]) -> TransactionSummary:
-    """Totais das transações filtradas; sem transações, todos são 0,00."""
     purchases = [item for item in transactions if item.type == TransactionType.COMPRA]
     sales = [item for item in transactions if item.type == TransactionType.VENDA]
     return TransactionSummary(

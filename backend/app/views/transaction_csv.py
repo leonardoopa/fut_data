@@ -1,5 +1,3 @@
-"""Apresentação do histórico de transações em CSV (RN18)."""
-
 import csv
 import io
 from collections.abc import Iterable
@@ -27,13 +25,10 @@ MISSING_VALUE = ""
 
 
 class CsvResponse(Response):
-    """Texto CSV em UTF-8, sem BOM."""
-
     media_type = "text/csv"
 
 
 def format_csv_money(value: Decimal | None) -> str:
-    """Valor em dinheiro no formato brasileiro; valor nulo fica vazio."""
     if value is None:
         return MISSING_VALUE
     return format_money(value)
@@ -53,10 +48,6 @@ def transaction_row(market_transaction: MarketTransaction) -> tuple[str, ...]:
 
 
 def render_transactions_csv(transactions: Iterable[MarketTransaction]) -> str:
-    """Cabeçalho e uma linha por transação, cada uma terminada em LF.
-
-    Um campo com `;` ou aspas vai entre aspas duplas, com cada aspa interna duplicada.
-    """
     buffer = io.StringIO()
     writer = csv.writer(buffer, delimiter=SEPARATOR, lineterminator=LINE_END)
     writer.writerow(HEADER)

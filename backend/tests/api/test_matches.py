@@ -46,7 +46,6 @@ DELTA_STARTERS: tuple[StarterSpec, ...] = (
 def documented_club(
     client: TestClient, name: str, acronym: str, specs: tuple[StarterSpec, ...]
 ) -> tuple[Club, dict[str, Player]]:
-    """Clube do exemplo do enunciado, escalado no 2-1-1; devolve os titulares pelo nome."""
     club = create_club(acronym, formation=None, name=name)
     starters = {
         player_name: insert_player(player_name, position=position, club=club, **fields)

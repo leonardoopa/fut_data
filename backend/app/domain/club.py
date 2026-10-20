@@ -29,7 +29,6 @@ ACRONYM_PATTERN = re.compile(f"[A-Z]{{{ACRONYM_LENGTH}}}")
 
 
 def validate_name(name: str) -> str:
-    """Nome do clube já normalizado pela V4: tamanho, caracteres e palavras."""
     if not NAME_MIN_LENGTH <= len(name) <= NAME_MAX_LENGTH:
         raise InvalidInputError(f"deve ter de {NAME_MIN_LENGTH} a {NAME_MAX_LENGTH} caracteres.")
     if not all(is_letter(character) or character in NAME_SYMBOLS for character in name):
@@ -40,7 +39,6 @@ def validate_name(name: str) -> str:
 
 
 def validate_acronym(acronym: str) -> str:
-    """Formato da sigla; a relação com o nome é conferida junto com o nome do clube."""
     if ACRONYM_PATTERN.fullmatch(acronym) is None:
         raise InvalidInputError(
             f"deve ter exatamente {ACRONYM_LENGTH} letras maiúsculas de A a Z, sem acento."
@@ -51,10 +49,6 @@ def validate_acronym(acronym: str) -> str:
 
 
 def validate_acronym_for_name(acronym: str, name: str) -> None:
-    """As letras da sigla aparecem no nome nessa ordem, a primeira sendo a primeira letra do nome.
-
-    A comparação ignora maiúsculas, minúsculas e acentos.
-    """
     name_letters = [character for character in alphabetical_key(name) if is_letter(character)]
     first, *others = alphabetical_key(acronym)
     following_letters = iter(name_letters[1:])
@@ -64,11 +58,6 @@ def validate_acronym_for_name(acronym: str, name: str) -> None:
 
 
 def name_key(name: str) -> str:
-    """Chave da unicidade do nome (RN10): ignora maiúsculas e minúsculas, mas não os acentos.
-
-    Cada caractere vira um só caractere, para a chave caber na coluna do nome: o "İ" (U+0130),
-    cuja minúscula tem dois caracteres, fica como está.
-    """
     return "".join(lower_keeping_length(character) for character in name)
 
 
@@ -87,7 +76,6 @@ def ensure_registration_allowed(*, club_count: int, name_taken: bool, acronym_ta
 
 
 def calculate_squad_value(market_values: Iterable[Decimal]) -> Decimal:
-    """Soma dos valores de mercado do elenco, calculada a cada consulta (RN11)."""
     return sum(market_values, ZERO_MONEY)
 
 
@@ -96,5 +84,4 @@ def calculate_net_worth(cash: Decimal, squad_value: Decimal) -> Decimal:
 
 
 def sort_squad[P: ListedPlayer](players: Iterable[P]) -> list[P]:
-    """Elenco por posição (GOL, ZAG, LAT, MEI, ATA), depois pelo nome e pelo id (RN11)."""
     return sort_players(players, SQUAD_ORDER)

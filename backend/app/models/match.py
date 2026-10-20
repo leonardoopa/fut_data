@@ -48,7 +48,6 @@ class Match(models.Model):
 
     @classmethod
     def record(cls, home: Club, away: Club, outcome: MatchOutcome, moment: datetime) -> Self:
-        """Guarda o placar e as formações do momento; nada é recalculado depois (RN20)."""
         return cls(
             home_club=home,
             away_club=away,
@@ -107,7 +106,6 @@ class MatchDuel(models.Model):
 
     @classmethod
     def record(cls, match: Match, duel: Duel) -> Self:
-        """Guarda nomes, posições, condições, atributos e valores usados no duelo (RN20)."""
         attacker, defender = duel.attacker, duel.defender
         return cls(
             match=match,

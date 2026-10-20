@@ -15,15 +15,11 @@ from app.services.lookups import ensure_club_exists, ensure_club_found, ensure_m
 
 @dataclass(frozen=True)
 class MatchReport:
-    """Partida com os 6 duelos, na ordem da RN20."""
-
     match: Match
     duels: list[MatchDuel]
 
 
 class MatchService:
-    """Partidas e histórico de partidas (RN20 e RN21)."""
-
     def __init__(
         self,
         clubs: ClubRepository,
@@ -38,10 +34,6 @@ class MatchService:
 
     @transaction.atomic
     def play(self, fixture: MatchFixture) -> MatchReport:
-        """Joga a partida na hora e grava o placar e os 6 duelos, sem outros efeitos.
-
-        Os dois clubes ficam travados até o fim, para que nenhuma escalação mude no meio.
-        """
         clubs = self._clubs.lock_many((fixture.home_club_id, fixture.away_club_id))
         home = ensure_club_found(clubs.get(fixture.home_club_id))
         away = ensure_club_found(clubs.get(fixture.away_club_id))
@@ -62,7 +54,6 @@ class MatchService:
         return MatchReport(match=match, duels=self._matches.duels_of(match.id))
 
     def _team_of(self, club: Club) -> Team:
-        """Só joga o clube com a escalação completa, com os 5 titulares (RN19)."""
         starters = self._lineups.starters_of(club.id)
         ensure_lineup_complete(club.name, len(starters))
         return Team(club_id=club.id, starters=starters)

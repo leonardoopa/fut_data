@@ -1,9 +1,9 @@
 from app.core.database import DatabaseRouter, check_database_connection
 
-router = DatabaseRouter(tags=["Saúde"])
+router = DatabaseRouter(tags=["Health"])
 
 
-@router.get("/health", summary="Verifica se a API e o banco de dados estão no ar")
+@router.get("/health", summary="Check that the API and the database are up")
 def health() -> dict[str, str]:
     check_database_connection()
     return {"status": "ok"}

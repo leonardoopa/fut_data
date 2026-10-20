@@ -41,7 +41,6 @@ class Contract(models.Model):
         loyalty_until: datetime,
         moment: datetime,
     ) -> Self:
-        """Contrato ATIVO criado pela compra (RN12)."""
         return cls(
             player=player,
             club=club,
@@ -55,6 +54,5 @@ class Contract(models.Model):
         return contract_terms(self.purchase_value, self.loyalty_until, moment)
 
     def end(self, status: ContractStatus, moment: datetime) -> None:
-        """A venda encerra ou rescinde o contrato, que não muda depois (RN15)."""
         self.status = status
         self.ended_at = moment

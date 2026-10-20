@@ -6,7 +6,7 @@ from app.domain.standings import Standing
 
 
 class StandingView(BaseModel):
-    """Linha da classificação, calculada na hora (RN21)."""
+    """Standings row, computed on every read (RN21)."""
 
     position: int
     club_id: int
