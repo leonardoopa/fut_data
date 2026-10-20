@@ -15,7 +15,7 @@ from app.services.market_service import MarketService
 from app.views.transaction_csv import CsvResponse, transactions_csv_response
 from app.views.transaction_view import PurchaseView, SaleView, TransactionHistoryView
 
-router = DatabaseRouter(tags=["Mercado"])
+router = DatabaseRouter(tags=["Market"])
 
 
 def get_market_service(clock: Annotated[Clock, Depends(get_clock)]) -> MarketService:
@@ -32,19 +32,19 @@ def get_market_service(clock: Annotated[Clock, Depends(get_clock)]) -> MarketSer
 MarketServiceDependency = Annotated[MarketService, Depends(get_market_service)]
 
 
-@router.post("/players/{player_id}/buy", summary="Compra um jogador livre (RN12 a RN14)")
+@router.post("/players/{player_id}/buy", summary="Buy a free player (RN12 to RN14)")
 def buy_player(
     player_id: ResourceId, body: PurchaseRequest, service: MarketServiceDependency
 ) -> PurchaseView:
     return PurchaseView.from_purchase(service.buy(player_id, body.to_order()))
 
 
-@router.post("/players/{player_id}/sell", summary="Vende um jogador do elenco (RN15 e RN16)")
+@router.post("/players/{player_id}/sell", summary="Sell a squad player (RN15 and RN16)")
 def sell_player(player_id: ResourceId, service: MarketServiceDependency) -> SaleView:
     return SaleView.from_sale(service.sell(player_id))
 
 
-@router.get("/clubs/{club_id}/transactions", summary="Histórico de transações do clube (RN17)")
+@router.get("/clubs/{club_id}/transactions", summary="Club transaction history (RN17)")
 def list_transactions(
     club_id: ResourceId,
     query: Annotated[TransactionListQuery, Query()],
@@ -58,7 +58,7 @@ def list_transactions(
 @router.get(
     "/clubs/{club_id}/transactions/export",
     response_class=CsvResponse,
-    summary="Exporta o histórico de transações do clube em CSV (RN18)",
+    summary="Export the club transaction history as CSV (RN18)",
 )
 def export_transactions(
     club_id: ResourceId,

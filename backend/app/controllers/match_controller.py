@@ -13,7 +13,7 @@ from app.requests.path import ResourceId
 from app.services.match_service import MatchService
 from app.views.match_view import MatchDetailsView, MatchView
 
-router = DatabaseRouter(prefix="/matches", tags=["Partidas"])
+router = DatabaseRouter(prefix="/matches", tags=["Matches"])
 
 
 def get_match_service(clock: Annotated[Clock, Depends(get_clock)]) -> MatchService:
@@ -28,19 +28,19 @@ def get_match_service(clock: Annotated[Clock, Depends(get_clock)]) -> MatchServi
 MatchServiceDependency = Annotated[MatchService, Depends(get_match_service)]
 
 
-@router.get("", summary="Lista as partidas, da mais recente para a mais antiga (RN21)")
+@router.get("", summary="List matches, newest first (RN21)")
 def list_matches(
     query: Annotated[MatchListQuery, Query()], service: MatchServiceDependency
 ) -> list[MatchView]:
     return [MatchView.from_model(match) for match in service.list_matches(query.to_criteria())]
 
 
-@router.get("/{match_id}", summary="Consulta uma partida com os 6 duelos (RN21)")
+@router.get("/{match_id}", summary="Get a match with its 6 duels (RN21)")
 def get_match(match_id: ResourceId, service: MatchServiceDependency) -> MatchDetailsView:
     return MatchDetailsView.from_report(service.get(match_id))
 
 
-@router.post("", status_code=HTTPStatus.CREATED, summary="Joga uma partida (RN20)")
+@router.post("", status_code=HTTPStatus.CREATED, summary="Play a match (RN20)")
 def play_match(
     body: MatchRequest,
     request: Request,

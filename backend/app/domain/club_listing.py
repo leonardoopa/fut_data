@@ -1,5 +1,3 @@
-"""Ordenação da listagem de clubes (RN11)."""
-
 from collections.abc import Callable, Iterable
 from decimal import Decimal
 from enum import StrEnum
@@ -9,8 +7,6 @@ from app.domain.text import alphabetical_key
 
 
 class ListedClub(Protocol):
-    """O que a listagem lê de cada clube."""
-
     @property
     def id(self) -> int: ...
 
@@ -35,6 +31,5 @@ SORT_KEYS: dict[ClubSort, Callable[[ListedClub], tuple[Decimal, ...]]] = {
 
 
 def sort_clubs[C: ListedClub](clubs: Iterable[C], sort: ClubSort) -> list[C]:
-    """Ordena pelo critério pedido; o empate é desfeito pelo nome e depois pelo id."""
     key = SORT_KEYS[sort]
     return sorted(clubs, key=lambda club: (*key(club), alphabetical_key(club.name), club.id))

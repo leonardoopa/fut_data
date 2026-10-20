@@ -7,8 +7,6 @@ from app.domain.rounding import round_to_integer
 
 @dataclass(frozen=True)
 class PlayerAttributes:
-    """Os seis atributos técnicos, informados no cadastro (RN06)."""
-
     pace: int
     shooting: int
     passing: int
@@ -25,8 +23,6 @@ class PlayerAttributes:
 
 @dataclass(frozen=True)
 class AttributeWeights:
-    """Peso percentual de cada atributo no overall de uma posição; soma 100."""
-
     pace: int
     shooting: int
     passing: int
@@ -55,7 +51,6 @@ POSITION_WEIGHTS: dict[Position, AttributeWeights] = {
 
 
 def calculate_overall(position: Position, attributes: PlayerAttributes) -> int:
-    """Média dos atributos ponderada pelos pesos da posição (RN06)."""
     weights = POSITION_WEIGHTS[position]
     weighted_sum = sum(
         getattr(attributes, field.name) * getattr(weights, field.name)
