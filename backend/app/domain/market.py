@@ -33,8 +33,6 @@ DAY = timedelta(days=1)
 
 @dataclass(frozen=True)
 class TransactionAmounts:
-    """Valores gravados na transação, com o efeito no caixa do clube (RN17)."""
-
     type: TransactionType
     value: Decimal
     fee: Decimal
@@ -45,8 +43,6 @@ class TransactionAmounts:
 
 @dataclass(frozen=True)
 class PurchaseQuote:
-    """Preço de uma compra: valor de mercado e taxa (RN13)."""
-
     value: Decimal
     fee: Decimal
 
@@ -68,8 +64,6 @@ class PurchaseQuote:
 
 @dataclass(frozen=True)
 class SaleSettlement:
-    """Acerto de uma venda: multa, lucro, comissão e crédito no caixa (RN15 e RN16)."""
-
     value: Decimal
     purchase_value: Decimal
     profit: Decimal
@@ -90,7 +84,6 @@ class SaleSettlement:
 
     @property
     def amounts(self) -> TransactionAmounts:
-        """Na venda, a taxa gravada é a comissão (RN17)."""
         return TransactionAmounts(
             type=TransactionType.VENDA,
             value=self.value,
@@ -103,8 +96,6 @@ class SaleSettlement:
 
 @dataclass(frozen=True)
 class ContractTerms:
-    """Situação de um contrato ATIVO num instante: dias restantes e multa se vendido (RN11)."""
-
     purchase_value: Decimal
     loyalty_until: datetime
     remaining_days: int
@@ -112,7 +103,6 @@ class ContractTerms:
 
 
 def validate_loyalty_until(loyalty_until: datetime, moment: datetime) -> None:
-    """O fim da fidelidade fica depois do momento da compra e até 1.095 dias depois dele."""
     if loyalty_until <= moment:
         raise LoyaltyNotInFutureError
     if loyalty_until > moment + MAX_LOYALTY_DAYS * DAY:
@@ -127,7 +117,6 @@ def ensure_purchase_allowed(
     squad_size: int,
     cash: Decimal,
 ) -> None:
-    """Regras da compra que dependem do estado atual do jogador e do clube (RN12 a RN14)."""
     if not player_is_free:
         raise PlayerNotFreeError
     if sold_by_buyer:
@@ -151,12 +140,10 @@ def quote_purchase(market_value: Decimal) -> PurchaseQuote:
 
 
 def purchase_limit(cash: Decimal) -> Decimal:
-    """Metade exata do caixa, sem arredondamento (RN13)."""
     return cash / 2
 
 
 def remaining_loyalty_days(loyalty_until: datetime, moment: datetime) -> int:
-    """Dias restantes de fidelidade, com a fração arredondada para cima (RN15)."""
     remaining = loyalty_until - moment
     if remaining <= timedelta(0):
         return 0
@@ -176,7 +163,6 @@ def calculate_penalty(market_value: Decimal, percentage: int) -> Decimal:
 
 
 def calculate_commission(profit: Decimal) -> Decimal:
-    """Comissão progressiva sobre o lucro, arredondada uma única vez (RN16)."""
     if profit <= 0:
         return ZERO_MONEY
     base_part = min(profit, COMMISSION_BRACKET_LIMIT)
