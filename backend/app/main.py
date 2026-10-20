@@ -11,12 +11,12 @@ from app.core.unexpected_error import UnexpectedErrorMiddleware
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Passe API",
-        description="Mercado de jogadores, clubes e liga do estudo de caso SENAI/PE.",
+        description="Player market, clubs, lineups and matches of a fictional football league.",
         version="1.0.0",
         redirect_slashes=False,
         strict_content_type=False,
     )
-    # O último adicionado é o mais externo: a falha inesperada vira JSON antes de passar pelo CORS.
+    # Added first, so innermost: its JSON 500 still passes through CORS.
     app.add_middleware(UnexpectedErrorMiddleware)
     app.add_middleware(
         CORSMiddleware,

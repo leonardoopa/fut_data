@@ -1,7 +1,7 @@
 [project]
 name = "passe-backend"
 version = "1.0.0"
-description = "API REST do mercado de jogadores da liga (estudo de caso SENAI/PE)."
+description = "REST API of the league player market (SENAI/PE case study)."
 requires-python = ">=3.12"
 
 [tool.ruff]
