@@ -9,11 +9,10 @@ class PlayerRepository:
         return Player.objects.active().filter(pk=player_id).first()
 
     def lock_active(self, player_id: int) -> Player | None:
-        """Como get_active, mas trava a linha até o fim da transação (SELECT ... FOR UPDATE)."""
         return Player.objects.active().select_for_update().filter(pk=player_id).first()
 
     def lock_active_many(self, player_ids: Iterable[int]) -> list[Player]:
-        """Os jogadores ativos entre os ids, travados em ordem crescente de id."""
+        """Ascending id order avoids deadlocks."""
         return list(
             Player.objects.active().select_for_update().filter(pk__in=player_ids).order_by("id")
         )
@@ -25,7 +24,6 @@ class PlayerRepository:
         return Player.objects.filter(club_id=club_id).count()
 
     def list_active(self, criteria: PlayerListCriteria) -> list[Player]:
-        """Aplica no banco só os filtros que são colunas; a busca e o valor ficam de fora."""
         column_filters = {
             "position": criteria.position,
             "condition": criteria.condition,

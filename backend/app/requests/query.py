@@ -1,9 +1,7 @@
-"""Tipos dos query params, no formato estrito de "1. Filtros e query params aceitos".
+"""Query param types.
 
-Os tipos aceitam `None` porque todo filtro é opcional: parâmetro ausente usa o padrão,
-e parâmetro presente com valor vazio é recusado pelo próprio validador. O padrão de um
-parâmetro fica fora do campo, que usa sempre `None`: o FastAPI envia ao validador o padrão
-de um parâmetro ausente, e estes validadores só aceitam o texto da URL.
+Fields always default to `None`: FastAPI validates non-None defaults, and these
+validators only accept URL text. The real defaults come from the criteria DTOs.
 """
 
 import re
@@ -58,10 +56,7 @@ def parse_search(raw: object) -> str:
 
 
 def single_occurrence(raw: object) -> object:
-    """O FastAPI entrega um query param de tipo sequência como a lista das suas ocorrências.
-
-    Uma lista de valores vem numa única ocorrência, com os valores separados por vírgula.
-    """
+    """FastAPI hands over the list of occurrences; the values arrive in one, comma-separated."""
     if isinstance(raw, list) and len(raw) == 1:
         return raw[0]
     return raw
@@ -73,7 +68,6 @@ def choice_list[E: StrEnum](
     max_items: int | None = None,
     group_of: Callable[[E], Hashable] = lambda option: option,
 ) -> PlainValidator:
-    """Valores da lista separados por vírgula, sem espaços e sem repetir o grupo."""
     options = {member.value: member for member in enum_type}
     accepted = ", ".join(options)
 

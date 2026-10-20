@@ -1,5 +1,3 @@
-"""Corpo e query params dos endpoints de clubes."""
-
 from typing import Self
 
 from pydantic import BaseModel, model_validator
@@ -11,7 +9,7 @@ from app.requests.fields import Acronym, ClubName
 
 
 class ClubRegistrationRequest(BaseModel):
-    """Corpo de POST /clubs; o caixa não é enviado (V7)."""
+    """Body of POST /clubs; the cash is not sent (V7)."""
 
     name: ClubName
     acronym: Acronym
@@ -26,7 +24,7 @@ class ClubRegistrationRequest(BaseModel):
 
 
 class ClubListQuery(BaseModel):
-    """Query params de GET /clubs; sem sort, a ordem é pelo nome."""
+    """Query params of GET /clubs; no sort means by name."""
 
     sort: ClubSort | None = None
 

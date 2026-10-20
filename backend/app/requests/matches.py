@@ -1,5 +1,3 @@
-"""Corpo de POST /matches e query params de GET /matches."""
-
 from typing import Self
 
 from pydantic import BaseModel, model_validator
@@ -11,7 +9,7 @@ from app.requests.query import QueryPositiveInteger
 
 
 class MatchRequest(BaseModel):
-    """Um clube inexistente é conferido pelo caso de uso (404)."""
+    """Body of POST /matches; an unknown club is a 404 from the use case."""
 
     home_club_id: PositiveId
     away_club_id: PositiveId
@@ -26,7 +24,7 @@ class MatchRequest(BaseModel):
 
 
 class MatchListQuery(BaseModel):
-    """Query params de GET /matches; sem club_id, vêm todas as partidas (RN21)."""
+    """Query params of GET /matches; no club_id means all matches (RN21)."""
 
     club_id: QueryPositiveInteger = None
 

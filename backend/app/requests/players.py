@@ -1,5 +1,3 @@
-"""Corpos e query params dos endpoints de jogadores, com as regras entre campos."""
-
 from typing import Annotated, Self
 
 from pydantic import BaseModel, Field, WithJsonSchema, model_validator
@@ -60,7 +58,7 @@ QueryPlayerSort = Annotated[
 
 
 class PlayerProfileRequest(BaseModel):
-    """Corpo de PUT /players/{id}: os quatro campos são exigidos, mesmo que só um mude (RN08)."""
+    """Body of PUT /players/{id}: all four fields are required (RN08)."""
 
     name: PlayerName
     position: Position
@@ -79,7 +77,7 @@ class PlayerProfileRequest(BaseModel):
 
 
 class PlayerRegistrationRequest(PlayerProfileRequest):
-    """Corpo de POST /players: os campos da edição, os seis atributos e o potencial (RN06)."""
+    """Body of POST /players: the profile fields, six attributes and the potential (RN06)."""
 
     pace: Attribute
     shooting: Attribute
@@ -113,13 +111,13 @@ class PlayerRegistrationRequest(PlayerProfileRequest):
 
 
 class PlayerConditionRequest(BaseModel):
-    """Corpo de PATCH /players/{id}/condition."""
+    """Body of PATCH /players/{id}/condition."""
 
     condition: Condition
 
 
 class PlayerListQuery(BaseModel):
-    """Query params de GET /players; os ausentes assumem os padrões de PlayerListCriteria."""
+    """Query params of GET /players; absent ones take the PlayerListCriteria defaults."""
 
     search: QuerySearch = None
     position: Position | None = None
