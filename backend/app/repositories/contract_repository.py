@@ -7,7 +7,6 @@ class ContractRepository:
         contract.save()
 
     def lock_active_of_player(self, player_id: int) -> Contract:
-        """O jogador com clube tem exatamente um contrato ATIVO, criado pela compra (RN12)."""
         return Contract.objects.select_for_update().get(
             player_id=player_id, status=ContractStatus.ATIVO
         )

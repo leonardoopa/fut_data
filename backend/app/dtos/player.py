@@ -16,8 +16,6 @@ from app.domain.player_listing import (
 
 @dataclass(frozen=True)
 class PlayerProfile:
-    """Nome, posição, agilidade e idade: o que o cadastro informa e o PUT pode mudar (RN08)."""
-
     name: str
     position: Position
     agility: int
@@ -26,8 +24,6 @@ class PlayerProfile:
 
 @dataclass(frozen=True)
 class PlayerRegistration:
-    """Dados do cadastro; os atributos e o potencial não mudam depois (RN06)."""
-
     profile: PlayerProfile
     attributes: PlayerAttributes
     potential: int
@@ -35,12 +31,6 @@ class PlayerRegistration:
 
 @dataclass(frozen=True)
 class PlayerListCriteria:
-    """Consulta de GET /players com os valores padrão da RN07.
-
-    Numa faixa de idade ou de valor que vem com só um dos limites, o outro assume o
-    extremo da faixa.
-    """
-
     search: str | None = None
     position: Position | None = None
     condition: Condition | None = None
