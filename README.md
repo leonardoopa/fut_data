@@ -190,7 +190,7 @@ Atuei como arquiteto e revisor do projeto e escrevi à mão boa parte do código
   - Configuração num só `.env` e num só `requirements.txt`, lidos com `os.getenv`.
   - Ruff, ESLint, Prettier e pre-commit como portões de qualidade.
 - **Ciclo de cada tarefa:**
-  - Quebrei o enunciado nas 43 tarefas do planejamento abaixo.
+  - Quebrei o enunciado nas 41 tarefas do planejamento abaixo.
   - Para cada uma, passei ao agente uma especificação fechada: a regra de negócio, o item do barema e o critério de aceite.
   - Antes do commit, eu revisava o diff, rodava os testes e o lint e usava a tela ou a API.
   - Nada entrou no repositório sem essa revisão, e todos os commits são meus.
@@ -224,18 +224,6 @@ Atuei como arquiteto e revisor do projeto e escrevi à mão boa parte do código
   - A validação estrita das entradas.
   - As telas que seguem o mockup.
   - As correções apontadas pelas auditorias: responsividade em 375 px, estados de carregamento e erro ao voltar a uma tela e mensagens com vírgula decimal.
-- **Alterado por decisão minha:**
-  - A troca de SQLAlchemy e Alembic pelo Django ORM.
-  - O padrão MVC com DTOs num pacote próprio e o catálogo único de exceções.
-  - Um só `requirements.txt` e um só `.env` na raiz, lidos com `os.getenv`.
-  - O pre-commit só com o Ruff.
-  - A lista de clubes do menu lateral mantida quando a API cai, para a página de cada clube continuar acessível e mostrar o próprio erro.
-- **Descartado:**
-  - A primeira versão do backend, com SQLAlchemy e Alembic.
-  - A classe de configuração com `pydantic-settings`.
-  - Os hooks de black, flake8 e autoflake, que conflitavam com o Ruff.
-  - O bloqueio na tela de faixas de idade e de valor invertidas: a API já recusa, e a tela mostra o `message`.
-  - Travar os titulares dentro da partida, porque inverteria a ordem dos locks e criaria risco de deadlock com a venda.
 
 ## Planejamento das tarefas
 
