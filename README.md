@@ -224,6 +224,16 @@ Atuei como arquiteto e revisor do projeto e escrevi à mão boa parte do código
   - A validação estrita das entradas.
   - As telas que seguem o mockup.
   - As correções apontadas pelas auditorias: responsividade em 375 px, estados de carregamento e erro ao voltar a uma tela e mensagens com vírgula decimal.
+- **Alterado por decisão minha:**
+  - A troca de SQLAlchemy e Alembic pelo Django ORM.
+  - O padrão MVC, com DTOs num pacote próprio e um catálogo único de exceções.
+  - Um só `requirements.txt` e um só `.env` na raiz, lidos com `os.getenv`.
+- **Descartado:**
+  - A primeira versão do backend, com SQLAlchemy e Alembic.
+  - A classe de configuração com `pydantic-settings`.
+  - Os hooks de black, flake8 e autoflake, que conflitavam com o Ruff; o pre-commit ficou só com o Ruff.
+  - O bloqueio na tela de faixas de idade e de valor invertidas: a API já recusa, e a tela mostra o `message`.
+  - Travar os titulares dentro da partida, porque inverteria a ordem dos locks e criaria risco de deadlock com a venda.
 
 ## Planejamento das tarefas
 
